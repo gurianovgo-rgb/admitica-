@@ -26,6 +26,13 @@
   --sidebar-w: 240px;
 }
 
+/* === Responsive breakpoints === */
+/* 1280px: shrink filter panel, slight padding tweaks */
+@media (max-width: 1280px) {
+  .main { padding: 28px 32px 60px; }
+  .find-layout { grid-template-columns: 220px 1fr; gap: 18px; }
+}
+/* 1100px: collapse sidebar to icons only */
 @media (max-width: 1100px) {
   :root { --sidebar-w: 72px; }
   .sb-logo span:not(.sb-logo-mark) { display: none; }
@@ -36,17 +43,41 @@
   .sb-sub { display: none; }
   .sb-user-name, .sb-user-plan { display: none; }
   .sb-user { justify-content: center; padding: 8px; }
-  .main { padding: 24px 28px 60px; }
-  .grid-3 { grid-template-columns: 1fr 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
-  .find-layout { grid-template-columns: 1fr; }
-  .filter-panel { position: static; }
+  .main { padding: 24px 24px 60px; }
   .essay-grid { grid-template-columns: 1fr; }
   .detail-grid { grid-template-columns: 1fr; }
 }
+/* 960px: collapse 2-column grids and find layout */
+@media (max-width: 960px) {
+  .main { padding: 20px 18px 60px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .find-layout { grid-template-columns: 1fr; gap: 16px; }
+  .filter-panel { position: static; }
+  .page-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .page-title { font-size: 24px; }
+  .subtabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+  .subtabs::-webkit-scrollbar { display: none; }
+  .subtab { flex-shrink: 0; white-space: nowrap; }
+}
+/* 760px: stack 3-grids, compress everything */
 @media (max-width: 760px) {
   .grid-3 { grid-template-columns: 1fr; }
-  .page-head { flex-direction: column; align-items: flex-start; }
+  .main { padding: 16px 14px 60px; }
+  .page-title { font-size: 22px; }
+  .card { padding: 16px; }
+  .u-card { padding: 14px; }
+  /* Search + sort row stacks */
+  .find-search-row { flex-direction: column; }
+  .find-search-row > select { width: 100% !important; }
+  /* GoalTracker: smaller hero number on narrow screens */
+  .goal-pct { font-size: 40px !important; }
+}
+/* 540px: very narrow */
+@media (max-width: 540px) {
+  :root { --sidebar-w: 60px; }
+  .main { padding: 14px 12px 60px; max-width: calc(100vw - var(--sidebar-w)); }
+  .page-title { font-size: 20px; }
+  .subtab { padding: 8px 12px; font-size: 12px; }
 }
 
 * { box-sizing: border-box; }

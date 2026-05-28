@@ -200,14 +200,14 @@ const Find = ({ saved, priorities, toggleSave, togglePrio, openDetail }) => {
         </button>
       </div>
 
-      <div className="row gap-12 mb-24" style={{ alignItems: 'stretch' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
+      <div className="row gap-12 mb-24 find-search-row" style={{ alignItems: 'stretch' }}>
+        <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
           <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--stone-2)' }}>
             <Ico.search w={16} />
           </div>
           <input
             className="ob-input"
-            style={{ paddingLeft: 40, fontSize: 14, padding: '11px 14px 11px 40px' }}
+            style={{ paddingLeft: 40, fontSize: 14, padding: '11px 14px 11px 40px', width: '100%' }}
             placeholder={`Поиск ${kind === 'uni' ? 'университета' : kind === 'grant' ? 'гранта' : 'стажировки'}...`}
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -215,7 +215,7 @@ const Find = ({ saved, priorities, toggleSave, togglePrio, openDetail }) => {
         </div>
         <select
           className="ob-input"
-          style={{ width: 220, fontSize: 13 }}
+          style={{ width: 220, fontSize: 13, flexShrink: 0 }}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >

@@ -75,7 +75,7 @@ const GoalTracker = ({ roadmaps, savedIds, setTab }) => {
       <div style={{ fontSize: 11, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
         Цель — поступление
       </div>
-      <div style={{ fontSize: 56, fontWeight: 500, letterSpacing: '-0.025em', lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+      <div className="goal-pct" style={{ fontSize: 56, fontWeight: 500, letterSpacing: '-0.025em', lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 4 }}>
         {pct}<span style={{ fontSize: 22, opacity: 0.7, fontWeight: 400 }}>%</span>
       </div>
       <div style={{ height: 6, background: 'rgba(255,255,255,0.18)', borderRadius: 3, overflow: 'hidden', marginTop: 16 }}>

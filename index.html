@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <title>Admitica — Поступление в Европу</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function() {
+  var params = new URLSearchParams(location.search);
+  var forced = params.get('view');
+  if (forced === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); return; }
+  if (forced === 'mobile') { sessionStorage.setItem('admitica.view', 'mobile'); location.replace('mobile.html' + location.search); return; }
+  if (sessionStorage.getItem('admitica.view') === 'desktop') return;
+  var ua = navigator.userAgent || '';
+  var isPhoneUA = /Mobi|Android|iPhone|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile/i.test(ua);
+  var isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+  var isTouchOnly = (navigator.maxTouchPoints > 0) && window.matchMedia('(pointer: coarse)').matches;
+  if (isPhoneUA || (isSmallScreen && isTouchOnly)) {
+    location.replace('mobile.html');
+  }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>

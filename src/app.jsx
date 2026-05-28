@@ -90,6 +90,7 @@ const App = () => {
                   name={name}
                   priorities={priorities}
                   savedIds={savedIds}
+                  roadmaps={roadmaps}
                   setTab={setTab}
                   openDetail={openDetail}
                 />
@@ -117,7 +118,6 @@ const App = () => {
                 />
               )}
               {tab === 'essay' && <Essay />}
-              {tab === 'vocab' && <Vocab />}
               {tab === 'resume' && <Resume />}
             </>
           )}

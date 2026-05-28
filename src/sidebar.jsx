@@ -16,7 +16,6 @@ const Sidebar = ({ tab, setTab, name, plan, slideIn, onSettings }) => {
       ],
     },
     { id: 'essay', label: 'Редактор эссе', icon: 'pen' },
-    { id: 'vocab', label: 'Тренажёр слов', icon: 'book' },
     { id: 'resume', label: 'Сборка резюме', icon: 'briefcase' },
   ];
 

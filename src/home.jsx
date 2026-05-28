@@ -47,44 +47,60 @@ const Streak = ({ streak }) => {
   );
 };
 
-const FocusTimer = () => {
-  const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(25 * 60);
-  const [todayMin, setTodayMin] = usePersist('todayMin', 47);
+const GoalTracker = ({ roadmaps, savedIds, setTab }) => {
+  const STEPS = ['Изучить программу', 'Подготовить документы', 'Подать заявку', 'Дождаться ответа'];
+  const totalSteps = STEPS.length;
 
-  useEffect(() => {
-    if (!running) return;
-    const t = setInterval(() => {
-      setSeconds((s) => {
-        if (s <= 1) {
-          setRunning(false);
-          setTodayMin((m) => m + 25);
-          return 25 * 60;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-  }, [running]);
+  // Find item by id across all data
+  const findItem = (id) =>
+    AdmiticaData.universities.find((u) => u.id === id) ||
+    AdmiticaData.grants.find((g) => g.id === id) ||
+    AdmiticaData.internships.find((i) => i.id === id);
 
-  const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const ss = String(seconds % 60).padStart(2, '0');
+  const pct = roadmaps.length
+    ? Math.round((roadmaps.reduce((s, r) => s + (r.step / totalSteps), 0) / roadmaps.length) * 100)
+    : 0;
+  const currentRm = roadmaps[0];
+  const currentItem = currentRm ? findItem(currentRm.itemId) : null;
 
   return (
-    <div className="card card-pad-lg">
-      <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Pomodoro</h3>
-      <div className="muted" style={{ fontSize: 13, marginBottom: 16 }}>Сфокусируйтесь на одной задаче 25 минут</div>
-      <div className="timer-display">{mm}:{ss}</div>
-      <div className="timer-stats">
-        <div>Сегодня <b>{todayMin} мин</b></div>
-        <div>Цель <b>120 мин</b></div>
+    <div
+      className="card card-pad-lg"
+      style={{
+        background: 'linear-gradient(140deg, var(--mid-blue-dark) 0%, var(--mid-blue) 100%)',
+        color: 'white',
+        border: 'none',
+      }}
+    >
+      <div style={{ fontSize: 11, opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+        Цель — поступление
       </div>
-      <div className="row gap-8" style={{ marginTop: 18 }}>
-        <button className="btn btn-primary" onClick={() => setRunning(!running)}>
-          {running ? <><Ico.pause w={14} /> Пауза</> : <><Ico.play w={14} /> Старт</>}
-        </button>
-        <button className="btn btn-ghost btn-sm" onClick={() => { setRunning(false); setSeconds(25*60); }}>
-          Сбросить
+      <div style={{ fontSize: 56, fontWeight: 500, letterSpacing: '-0.025em', lineHeight: 1, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        {pct}<span style={{ fontSize: 22, opacity: 0.7, fontWeight: 400 }}>%</span>
+      </div>
+      <div style={{ height: 6, background: 'rgba(255,255,255,0.18)', borderRadius: 3, overflow: 'hidden', marginTop: 16 }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: 'var(--teal-light)', borderRadius: 3, transition: 'width .6s ease' }} />
+      </div>
+      <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ fontSize: 13.5, lineHeight: 1.45, opacity: 0.95 }}>
+          {currentItem ? (
+            <>
+              Сейчас: <b style={{ fontWeight: 600 }}>{currentItem.name}</b>
+              <br />
+              <span style={{ opacity: 0.8 }}>Шаг {Math.min(currentRm.step + 1, totalSteps)} из {totalSteps} — {STEPS[Math.min(currentRm.step, totalSteps - 1)]}</span>
+            </>
+          ) : (
+            <>
+              Добавь программу в дорожную карту, чтобы начать отслеживать прогресс.
+            </>
+          )}
+        </div>
+        <button
+          className="btn btn-sm"
+          onClick={() => setTab(currentItem ? 'p_roadmap' : 'find')}
+          style={{ background: 'rgba(255,255,255,0.18)', color: 'white', flexShrink: 0 }}
+        >
+          {currentItem ? 'Открыть' : 'Найти'}
         </button>
       </div>
     </div>
@@ -106,7 +122,7 @@ const Quote = () => {
   );
 };
 
-const Home = ({ name, priorities, savedIds, setTab, openDetail }) => {
+const Home = ({ name, priorities, savedIds, roadmaps, setTab, openDetail }) => {
   const today = new Date().toLocaleDateString('ru', { weekday: 'long', day: 'numeric', month: 'long' });
   const greeting = (() => {
     const h = new Date().getHours();
@@ -145,7 +161,7 @@ const Home = ({ name, priorities, savedIds, setTab, openDetail }) => {
 
       <div className="grid-3" style={{ marginBottom: 24 }}>
         <Streak streak={4} />
-        <FocusTimer />
+        <GoalTracker roadmaps={roadmaps} savedIds={savedIds} setTab={setTab} />
         <Quote />
       </div>
 
@@ -225,10 +241,10 @@ const Home = ({ name, priorities, savedIds, setTab, openDetail }) => {
             <button className="btn-link" onClick={() => setTab('essay')}>Открыть редактор →</button>
           </div>
           <div className="card summary-card">
-            <span className="label">Словарный запас</span>
-            <div className="lead">487 слов</div>
-            <div className="body">Уровень C1 — академическая лексика для эссе. Сегодня доступно 12 повторений.</div>
-            <button className="btn-link" onClick={() => setTab('vocab')}>Тренировать →</button>
+            <span className="label">Резюме</span>
+            <div className="lead">2 достижения</div>
+            <div className="body">AI-помощник поможет оформить опыт в bullet points для европейских CV.</div>
+            <button className="btn-link" onClick={() => setTab('resume')}>Открыть конструктор →</button>
           </div>
         </div>
       </Section>

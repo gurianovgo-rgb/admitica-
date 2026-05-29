@@ -169,7 +169,12 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join('\n')}`
           <div className="page-sub">AI помогает превратить ваши истории в bullet points для европейских CV</div>
         </div>
         <div className="row gap-8">
-          <button className="btn btn-ghost"><Ico.dl w={13} /> Экспорт PDF</button>
+          <button className="btn btn-ghost" onClick={() => window.downloadResumeDocx(window.getUserName(), achievements)}>
+            <Ico.dl w={13} /> DOCX
+          </button>
+          <button className="btn btn-ghost" onClick={() => window.downloadResumePdf(window.getUserName(), achievements)}>
+            <Ico.dl w={13} /> PDF
+          </button>
         </div>
       </div>
 

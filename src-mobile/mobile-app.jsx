@@ -783,13 +783,20 @@ const Essay = ({ onBack }) => {
           </div>
         )}
 
-        <button
-          className="btn btn-ghost btn-block"
-          onClick={() => askAI('Скачивание .docx скоро будет доступно')}
-          style={{ marginTop: 10 }}
-        >
-          {I.dl} Скачать .docx
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={() => window.downloadEssayDocx(activePrompt.target, text)}
+          >
+            {I.dl} DOCX
+          </button>
+          <button
+            className="btn btn-ghost btn-block"
+            onClick={() => window.downloadEssayPdf(activePrompt.target, text)}
+          >
+            {I.dl} PDF
+          </button>
+        </div>
       </div>
     </>
   );
@@ -934,7 +941,10 @@ const Resume = ({ onBack }) => {
     <>
       <div className="scr-header">
         <button className="back-btn" onClick={onBack}>{I.chevL} Назад</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => toast && toast('Экспорт PDF скоро будет доступен')}>{I.dl} PDF</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => window.downloadResumeDocx(window.getUserName(), achievements)}>{I.dl} DOCX</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => window.downloadResumePdf(window.getUserName(), achievements)}>{I.dl} PDF</button>
+        </div>
       </div>
       <div style={{ padding: '0 18px 8px' }}>
         <div className="segmented" style={{ margin: '6px 0 0' }}>

@@ -66,7 +66,12 @@ ${text}`
           <div className="page-sub">AI поможет с структурой, конкретикой и грамматикой. Черновики сохраняются автоматически.</div>
         </div>
         <div className="row gap-8">
-          <button className="btn btn-ghost"><Ico.dl w={13} /> Скачать .docx</button>
+          <button className="btn btn-ghost" onClick={() => window.downloadEssayDocx(activePrompt.target, text)}>
+            <Ico.dl w={13} /> DOCX
+          </button>
+          <button className="btn btn-ghost" onClick={() => window.downloadEssayPdf(activePrompt.target, text)}>
+            <Ico.dl w={13} /> PDF
+          </button>
           <button className="btn btn-blue" onClick={askAI} disabled={loading}>
             <Ico.sparkle w={13} /> {loading ? 'AI думает…' : 'Запросить AI-фидбэк'}
           </button>

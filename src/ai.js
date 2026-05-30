@@ -43,15 +43,37 @@
     const model = getModel();
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
+    // AQ.* keys are Gemini Express Mode tokens — use Bearer auth
+    // AIzaSy* keys are classic API keys — use ?key= query param
+    const isBearer = API_KEY.startsWith('AQ.') || API_KEY.startsWith('ya29.');
+    const headers = { 'Content-Type': 'application/json' };
+    let url = endpoint;
+    if (isBearer) {
+      headers['Authorization'] = `Bearer ${API_KEY}`;
+    } else {
+      url = `${endpoint}?key=${encodeURIComponent(API_KEY)}`;
+    }
+
     let res;
     try {
-      res = await fetch(`${endpoint}?key=${encodeURIComponent(API_KEY)}`, {
+      res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(body),
       });
     } catch (e) {
       throw new Error('Сеть недоступна: ' + e.message);
+    }
+
+    // If Bearer auth failed with 401/403, retry with ?key= (in case it's a hybrid key)
+    if (!res.ok && isBearer && (res.status === 401 || res.status === 403)) {
+      try {
+        res = await fetch(`${endpoint}?key=${encodeURIComponent(API_KEY)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      } catch {}
     }
 
     if (!res.ok) {
@@ -69,6 +91,7 @@
         fullResponse: parsed || errText,
         endpoint,
         model,
+        authMethod: isBearer ? 'Bearer header' : 'API key query param',
         keyPrefix: API_KEY.slice(0, 8) + '...',
       });
 

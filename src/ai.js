@@ -2,8 +2,15 @@
 // ⚠️ DEMO ONLY. Move to backend proxy before production.
 // Get a key at https://aistudio.google.com/apikey and paste it in Profile → "AI ключ"
 (function () {
-  const MODEL = 'gemini-2.0-flash';
-  const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+  // Models with their free-tier quotas (RPM / RPD):
+  // - gemini-2.0-flash-lite: 30 / 1500  ← default (highest RPM)
+  // - gemini-2.0-flash:      15 / 1500
+  // - gemini-1.5-flash-8b:   15 / 1500
+  // Switch model: localStorage.setItem('admitica.gemini_model', 'gemini-2.0-flash')
+  const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
+  function getModel() {
+    try { return localStorage.getItem('admitica.gemini_model') || DEFAULT_MODEL; } catch { return DEFAULT_MODEL; }
+  }
 
   function getKey() {
     // Priority: window.GEMINI_KEY (set by local config.js) > localStorage
@@ -33,9 +40,12 @@
       body.systemInstruction = { parts: [{ text: opts.system }] };
     }
 
+    const model = getModel();
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
     let res;
     try {
-      res = await fetch(`${ENDPOINT}?key=${encodeURIComponent(API_KEY)}`, {
+      res = await fetch(`${endpoint}?key=${encodeURIComponent(API_KEY)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -46,17 +56,27 @@
 
     if (!res.ok) {
       let errText = await res.text();
+      let errMsg = errText;
+      let quotaId = '';
       try {
         const j = JSON.parse(errText);
-        errText = j.error?.message || errText;
+        errMsg = j.error?.message || errText;
+        // Extract quota name from error details
+        const violations = j.error?.details?.find(d => d['@type']?.includes('QuotaFailure'))?.violations || [];
+        if (violations.length) quotaId = violations[0].quotaMetric || violations[0].quotaId || '';
       } catch {}
+
       if (res.status === 400 || res.status === 403) {
-        throw new Error('Неверный API-ключ Gemini. Получите ключ на https://aistudio.google.com/apikey и впишите в src/ai.js');
+        throw new Error('Неверный API-ключ Gemini. Возможно ключ не подходит для Generative Language API. Получи новый: aistudio.google.com/apikey (формат AIzaSy...)');
       }
       if (res.status === 429) {
-        throw new Error('Лимит запросов исчерпан, попробуйте через минуту');
+        const isDaily = /per.?day|daily|РПД|PerDay/i.test(quotaId + ' ' + errMsg);
+        if (isDaily) {
+          throw new Error(`Дневной лимит Gemini исчерпан (1500 запросов/день на free tier). Сбросится в ~10:00 по Москве. Или включи billing в Google Cloud — там лимиты выше.`);
+        }
+        throw new Error(`Лимит ${model}: ${errMsg.slice(0, 120)}. Подожди 60 сек, попробуй другую модель в настройках, или включи billing.`);
       }
-      throw new Error(`Gemini ${res.status}: ${errText.slice(0, 200)}`);
+      throw new Error(`Gemini ${res.status}: ${errMsg.slice(0, 200)}`);
     }
 
     const data = await res.json();
@@ -84,7 +104,8 @@
     try { return JSON.parse(m[0]); } catch { return null; }
   }
 
-  window.ai = { complete, extractJson, model: MODEL, getKey, setKey };
+  function setModel(m) { try { localStorage.setItem('admitica.gemini_model', m || DEFAULT_MODEL); } catch {} }
+  window.ai = { complete, extractJson, getKey, setKey, getModel, setModel };
 
   // Backward-compat for desktop code that uses window.claude.complete
   window.claude = { complete: (prompt) => complete(prompt) };

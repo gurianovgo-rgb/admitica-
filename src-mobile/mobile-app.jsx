@@ -181,10 +181,17 @@ const todayName = () => {
   return d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 };
 
-// ===== AI placeholder hook =====
-const useAIStub = () => {
+// ===== AI helper hook =====
+const useAI = () => {
   const toast = React.useContext(ToastCtx);
-  return (label = 'AI скоро будет подключён') => toast && toast(label);
+  return async (prompt, opts) => {
+    try {
+      return await window.ai.complete(prompt, opts);
+    } catch (e) {
+      toast && toast('AI ошибка: ' + (e.message || ''));
+      throw e;
+    }
+  };
 };
 
 // ===== Home tab =====
@@ -599,7 +606,23 @@ const ProgramsTab = ({ savedIds, priorities, setPriorities, toggleSave, togglePr
 // ===== Detail screen =====
 const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap, addRoadmap }) => {
   const isInt = item.type === 'int';
-  const askAI = useAIStub();
+  const ai = useAI();
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiAnswer, setAiAnswer] = useState('');
+
+  const askProgram = async () => {
+    if (aiLoading) return;
+    setAiLoading(true);
+    setAiAnswer('');
+    try {
+      const reply = await ai(
+        `Кратко (3-4 предложения, по-русски) расскажи абитуриенту: главные плюсы программы, кому подойдёт, на что обратить внимание при подаче. Без воды, конкретно.\n\nПрограмма: ${item.name}\nСтрана: ${item.country}\nНаправление: ${item.field || item.industry || ''}\nДедлайн: ${item.deadline || 'rolling'}\nСтоимость: ${item.tuition || item.amount || item.stipend || 'не указана'}\nОписание: ${item.desc || ''}`,
+        { temperature: 0.7, maxTokens: 500 }
+      );
+      setAiAnswer(reply);
+    } catch {}
+    setAiLoading(false);
+  };
 
   const rows = [];
   if (item.program || item.role) rows.push(['Программа', item.program || item.role]);
@@ -651,11 +674,22 @@ const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap,
 
         <button
           className="btn btn-ghost btn-block"
-          onClick={() => askAI('AI разбор программы скоро будет доступен')}
+          onClick={askProgram}
+          disabled={aiLoading}
           style={{ marginTop: 14, background: 'rgba(60,52,137,0.07)', color: 'var(--purple-dark)' }}
         >
-          {I.sparkle} Спросить AI об этой программе
+          {I.sparkle} {aiLoading ? 'AI разбирает...' : 'Спросить AI об этой программе'}
         </button>
+
+        {aiAnswer && (
+          <div className="card" style={{ marginTop: 10, background: 'rgba(60,52,137,0.05)', border: '1px solid rgba(60,52,137,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              {I.sparkle}
+              <strong style={{ fontSize: 12, color: 'var(--purple-dark)' }}>AI о программе</strong>
+            </div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{aiAnswer}</div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <button className={`btn btn-block ${prio ? 'btn-primary' : 'btn-ghost'}`} onClick={() => togglePrio(item.id)}>
@@ -692,7 +726,7 @@ const Essay = ({ onBack }) => {
     try { localStorage.setItem('admitica.essay_' + activePromptId, JSON.stringify(text)); } catch {}
   }, [activePromptId, text]);
 
-  const [feedback] = useState([
+  const [feedback, setFeedback] = useState([
     { type: 'flow', txt: 'Сильное открывающее предложение с конкретной сценой. Это заметно выделяет вас среди абстрактных вступлений.' },
     { type: 'concrete', txt: 'Хороший переход от личной истории к академической мотивации. Можно усилить, добавив конкретный результат олимпиады (например, «вошёл в топ-5%»).' },
     { type: 'gap', txt: 'Не хватает связки с программой Bocconi. Какие конкретные курсы или преподаватели вас интересуют? Это покажет fit с программой.' },
@@ -700,15 +734,37 @@ const Essay = ({ onBack }) => {
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
   const target = 1000;
-  const askAI = useAIStub();
-  const [showFb, setShowFb] = useState(false);
+  const ai = useAI();
+  const toast = React.useContext(ToastCtx);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showFb, setShowFb] = useState(true);
+
+  const requestAIFeedback = async () => {
+    if (aiLoading) return;
+    setAiLoading(true);
+    try {
+      const reply = await ai(
+        `Ты редактор admissions essays. Дай 3 коротких практических замечания (по 1-2 предложения) к этому тексту, в JSON-массиве с ключами "type" (flow/concrete/gap/grammar) и "txt". Без markdown, только JSON.\n\nПромпт: ${activePrompt.prompt}\n\nТекст:\n${text}`,
+        { temperature: 0.5 }
+      );
+      const arr = window.ai.extractJson(reply);
+      if (Array.isArray(arr) && arr.length) {
+        setFeedback(arr.slice(0, 4));
+        setShowFb(true);
+        toast && toast('AI обновил замечания');
+      } else {
+        toast && toast('Не удалось разобрать ответ');
+      }
+    } catch {}
+    setAiLoading(false);
+  };
 
   return (
     <>
       <div className="scr-header">
         <button className="back-btn" onClick={onBack}>{I.chevL} Назад</button>
-        <button className="btn btn-blue btn-sm" onClick={() => askAI('AI-фидбэк по эссе скоро будет доступен')}>
-          {I.sparkle} AI
+        <button className="btn btn-blue btn-sm" onClick={requestAIFeedback} disabled={aiLoading}>
+          {I.sparkle} {aiLoading ? 'AI думает...' : 'AI-фидбэк'}
         </button>
       </div>
       <div className="tab-content">
@@ -872,30 +928,11 @@ const Resume = ({ onBack }) => {
   const [view, setView] = useState('chat'); // 'chat' | 'list'
   const scrollRef = useRef(null);
   const toast = React.useContext(ToastCtx);
+  const ai = useAI();
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [msgs, typing]);
-
-  // Stub AI: clarifying question then draft suggestion (matches desktop flow, but local-only)
-  const stubAIReply = (userMsg, allMsgs, nextTurn) => {
-    if (nextTurn >= 2) {
-      // Generate fake suggestion from accumulated user replies
-      const userTexts = allMsgs.filter(m => m.from === 'user').map(m => m.txt).join(' · ');
-      const sug = {
-        title: userTexts.split(/[.,;]/)[0].slice(0, 60) || 'Новое достижение',
-        org: 'Организация · 2024',
-        desc: userTexts.length > 120 ? userTexts.slice(0, 240) : userTexts + ' Результат измерим конкретными метриками.',
-        skills: ['leadership', 'analytical', 'communication'],
-      };
-      return { reply: 'Я оформил это в готовый пункт резюме. Проверьте — можно добавить или подправить:', suggestion: sug, resetTurn: true };
-    }
-    const questions = [
-      'Какой конкретный результат — число, %, место? Это сделает пункт сильнее.',
-      'Какая была ваша личная роль и что именно вы делали?',
-    ];
-    return { reply: questions[Math.min(nextTurn - 1, questions.length - 1)] };
-  };
 
   const send = async () => {
     if (!input.trim() || typing) return;
@@ -907,12 +944,30 @@ const Resume = ({ onBack }) => {
     const nextTurn = turnCount + 1;
     setTurnCount(nextTurn);
 
-    setTimeout(() => {
-      const r = stubAIReply(userMsg, newMsgs, nextTurn);
-      setMsgs(prev => [...prev, { from: 'ai', txt: r.reply, suggestion: r.suggestion }]);
-      if (r.resetTurn) setTurnCount(0);
-      setTyping(false);
-    }, 800);
+    try {
+      if (nextTurn >= 2) {
+        const reply = await ai(
+          `Ты помогаешь собрать резюме для европейских университетов. На основе диалога оформи одно достижение в JSON: {"title":"короткое название","org":"организация и дата","desc":"1-2 предложения с метриками","skills":["3 английских тега"]}. Только JSON, без markdown.\n\nДиалог:\n${newMsgs.map(m => `${m.from}: ${m.txt}`).join('\n')}`,
+          { temperature: 0.6 }
+        );
+        const obj = window.ai.extractJson(reply);
+        if (obj && obj.title) {
+          setMsgs(prev => [...prev, { from: 'ai', txt: 'Я оформил это в готовый пункт резюме. Проверьте — можно добавить или подправить:', suggestion: obj }]);
+          setTurnCount(0);
+        } else {
+          setMsgs(prev => [...prev, { from: 'ai', txt: 'Не хватает данных. Какой конкретный результат — число, процент, место?' }]);
+        }
+      } else {
+        const reply = await ai(
+          `Ты помогаешь собрать резюме. Пользователь рассказал о достижении. Задай ОДИН короткий уточняющий вопрос (1-2 предложения, на русском), чтобы добавить конкретику — числа, метрики, роль. Не повторяйся, не благодари.\n\nСообщение: ${userMsg}`,
+          { temperature: 0.7, maxTokens: 150 }
+        );
+        setMsgs(prev => [...prev, { from: 'ai', txt: reply.trim() }]);
+      }
+    } catch (e) {
+      setMsgs(prev => [...prev, { from: 'ai', txt: 'Не удалось получить ответ AI: ' + (e.message || '') }]);
+    }
+    setTyping(false);
   };
 
   const acceptDraft = (d) => {
@@ -1061,6 +1116,57 @@ const Resume = ({ onBack }) => {
   );
 };
 
+// ===== AI Key card =====
+const AIKeyCard = () => {
+  const [key, setKeyState] = useState(() => window.ai?.getKey() || '');
+  const [visible, setVisible] = useState(false);
+  const toast = React.useContext(ToastCtx);
+  const masked = key ? key.slice(0, 6) + '...' + key.slice(-4) : '';
+
+  const save = () => {
+    window.ai.setKey(key.trim());
+    toast && toast(key.trim() ? 'AI ключ сохранён' : 'AI ключ удалён');
+    setVisible(false);
+  };
+  const clear = () => {
+    setKeyState('');
+    window.ai.setKey('');
+    toast && toast('AI ключ удалён');
+  };
+
+  return (
+    <div className="card">
+      <div style={{ fontSize: 13, color: 'var(--stone-2)', marginBottom: 8, lineHeight: 1.45 }}>
+        Получить ключ: <b>aistudio.google.com/apikey</b>. Хранится только в этом браузере.
+      </div>
+      {visible ? (
+        <>
+          <input
+            type="text"
+            autoFocus
+            value={key}
+            onChange={(e) => setKeyState(e.target.value)}
+            placeholder="AIzaSy... или AQ.Ab8R..."
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'white', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button className="btn btn-blue btn-block" onClick={save}>Сохранить</button>
+            <button className="btn btn-ghost btn-block" onClick={() => { setKeyState(window.ai?.getKey() || ''); setVisible(false); }}>Отмена</button>
+          </div>
+        </>
+      ) : key ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="pill pill-teal" style={{ fontFamily: 'monospace' }}>{masked}</span>
+          <button className="btn btn-ghost btn-sm" onClick={() => setVisible(true)} style={{ marginLeft: 'auto' }}>Изменить</button>
+          <button className="btn btn-ghost btn-sm" onClick={clear} style={{ color: 'var(--red)' }}>Удалить</button>
+        </div>
+      ) : (
+        <button className="btn btn-blue btn-block" onClick={() => setVisible(true)}>+ Добавить AI ключ</button>
+      )}
+    </div>
+  );
+};
+
 // ===== Profile tab (replaces Settings/More) =====
 const ProfileTab = ({ name, setName, plan, setPlan, savedIds, priorities, roadmaps, onReset, onSwitchDesktop, openTool }) => {
   const [editName, setEditName] = useState(false);
@@ -1158,6 +1264,9 @@ const ProfileTab = ({ name, setName, plan, setPlan, savedIds, priorities, roadma
             </div>
           ))}
         </div>
+
+        <div className="section-h"><h2>AI ключ</h2></div>
+        <AIKeyCard />
 
         <div className="section-h"><h2>Данные</h2></div>
         <button className="more-item" style={{ width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={onSwitchDesktop}>

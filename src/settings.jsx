@@ -1,3 +1,45 @@
+// Inline AI key card for Settings drawer
+const DesktopAIKey = () => {
+  const [key, setKey] = useState(() => window.ai?.getKey() || '');
+  const [editing, setEditing] = useState(false);
+  const masked = key ? key.slice(0, 6) + '...' + key.slice(-4) : '';
+
+  const save = () => { window.ai.setKey(key.trim()); setEditing(false); };
+  const clear = () => { setKey(''); window.ai.setKey(''); };
+
+  return (
+    <>
+      <div className="muted" style={{ fontSize: 12, marginBottom: 8, lineHeight: 1.5 }}>
+        Получить: <b>aistudio.google.com/apikey</b>. Хранится только в localStorage этого браузера.
+      </div>
+      {editing ? (
+        <>
+          <input
+            className="ob-input"
+            style={{ fontSize: 12, padding: '8px 12px', fontFamily: 'monospace' }}
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="AIzaSy... или AQ.Ab8R..."
+            autoFocus
+          />
+          <div className="row gap-8" style={{ marginTop: 8 }}>
+            <button className="btn btn-blue btn-sm" onClick={save}>Сохранить</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setKey(window.ai?.getKey() || ''); setEditing(false); }}>Отмена</button>
+          </div>
+        </>
+      ) : key ? (
+        <div className="row gap-8" style={{ alignItems: 'center' }}>
+          <span className="pill pill-teal" style={{ fontFamily: 'monospace', fontSize: 11 }}>{masked}</span>
+          <button className="btn-link" onClick={() => setEditing(true)}>Изменить</button>
+          <button className="btn-link" onClick={clear} style={{ color: 'var(--red)' }}>Удалить</button>
+        </div>
+      ) : (
+        <button className="btn btn-blue btn-sm" onClick={() => setEditing(true)}>+ Добавить ключ</button>
+      )}
+    </>
+  );
+};
+
 // Settings drawer
 const Settings = ({ open, onClose, name, setName, plan, setPlan, savedIds, priorities, roadmaps, onReset }) => {
   return (
@@ -83,6 +125,11 @@ const Settings = ({ open, onClose, name, setName, plan, setPlan, savedIds, prior
               <b>октября 2024</b>
             </div>
           </div>
+        </div>
+
+        <div className="drawer-section">
+          <h4>AI ключ (Gemini)</h4>
+          <DesktopAIKey />
         </div>
 
         <div className="drawer-section">

@@ -55,26 +55,36 @@
     }
 
     if (!res.ok) {
-      let errText = await res.text();
-      let errMsg = errText;
-      let quotaId = '';
-      try {
-        const j = JSON.parse(errText);
-        errMsg = j.error?.message || errText;
-        // Extract quota name from error details
-        const violations = j.error?.details?.find(d => d['@type']?.includes('QuotaFailure'))?.violations || [];
-        if (violations.length) quotaId = violations[0].quotaMetric || violations[0].quotaId || '';
-      } catch {}
+      const errText = await res.text();
+      let parsed = null;
+      try { parsed = JSON.parse(errText); } catch {}
+      const errMsg = parsed?.error?.message || errText;
+      const errStatus = parsed?.error?.status || '';
 
-      if (res.status === 400 || res.status === 403) {
-        throw new Error('Неверный API-ключ Gemini. Возможно ключ не подходит для Generative Language API. Получи новый: aistudio.google.com/apikey (формат AIzaSy...)');
+      // Log full details to console for debugging
+      console.error('[Gemini API error]', {
+        httpStatus: res.status,
+        apiStatus: errStatus,
+        message: errMsg,
+        fullResponse: parsed || errText,
+        endpoint,
+        model,
+        keyPrefix: API_KEY.slice(0, 8) + '...',
+      });
+
+      if (res.status === 400) {
+        throw new Error(`Gemini 400: ${errMsg.slice(0, 180)} — проверь формат ключа (должен быть AIzaSy..., 39 символов). Открой DevTools → Console для деталей.`);
+      }
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Gemini ${res.status}: ключ отклонён. Возможно нужно включить Generative Language API в Google Cloud Console для этого проекта. Или получи новый ключ: aistudio.google.com/apikey`);
       }
       if (res.status === 429) {
-        const isDaily = /per.?day|daily|РПД|PerDay/i.test(quotaId + ' ' + errMsg);
-        if (isDaily) {
-          throw new Error(`Дневной лимит Gemini исчерпан (1500 запросов/день на free tier). Сбросится в ~10:00 по Москве. Или включи billing в Google Cloud — там лимиты выше.`);
+        // Could be real quota OR project-level restriction
+        const isQuotaZero = /quota.{0,30}(zero|0)|exceeded.{0,20}limit.{0,20}0|RESOURCE_EXHAUSTED/i.test(errMsg + ' ' + errStatus);
+        if (isQuotaZero) {
+          throw new Error(`Gemini вернул 429, но похоже квота этого проекта = 0. Это значит API не активирован для твоего проекта или ключ от другого сервиса (не Generative Language API). Решение: получи ключ на aistudio.google.com/apikey (формат AIzaSy...). Подробности в Console.`);
         }
-        throw new Error(`Лимит ${model}: ${errMsg.slice(0, 120)}. Подожди 60 сек, попробуй другую модель в настройках, или включи billing.`);
+        throw new Error(`Gemini 429: ${errMsg.slice(0, 180)} — детали в DevTools Console.`);
       }
       throw new Error(`Gemini ${res.status}: ${errMsg.slice(0, 200)}`);
     }

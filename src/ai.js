@@ -1,20 +1,16 @@
-// AI client — Google Gemini API
-// ⚠️ DEMO ONLY. Move to backend proxy before production.
-// Get a key at https://aistudio.google.com/apikey and paste it in Profile → "AI ключ"
+// AI client — supports OpenRouter (sk-or-v1-*) and Google Gemini (AIzaSy*/AQ.*)
+// Auto-detects provider by key prefix.
+// ⚠️ DEMO ONLY. Move key to backend proxy before production.
 (function () {
-  // Models with their free-tier quotas (RPM / RPD):
-  // - gemini-2.0-flash-lite: 30 / 1500  ← default (highest RPM)
-  // - gemini-2.0-flash:      15 / 1500
-  // - gemini-1.5-flash-8b:   15 / 1500
-  // Switch model: localStorage.setItem('admitica.gemini_model', 'gemini-2.0-flash')
-  const DEFAULT_MODEL = 'gemini-2.0-flash-lite';
-  function getModel() {
-    try { return localStorage.getItem('admitica.gemini_model') || DEFAULT_MODEL; } catch { return DEFAULT_MODEL; }
-  }
+  // Default models per provider
+  const DEFAULT_MODELS = {
+    openrouter: 'meta-llama/llama-3.3-70b-instruct:free',
+    gemini: 'gemini-2.0-flash-lite',
+  };
 
   function getKey() {
-    // Priority: window.GEMINI_KEY (set by local config.js) > localStorage
     if (window.GEMINI_KEY) return window.GEMINI_KEY;
+    if (window.AI_KEY) return window.AI_KEY;
     try { return localStorage.getItem('admitica.gemini_key') || ''; } catch { return ''; }
   }
 
@@ -22,13 +18,71 @@
     try { localStorage.setItem('admitica.gemini_key', k || ''); } catch {}
   }
 
-  async function complete(prompt, opts) {
-    const API_KEY = getKey();
-    if (!API_KEY) {
-      throw new Error('AI ключ не настроен. Откройте Профиль → "AI ключ" и вставьте Gemini API key (получить: aistudio.google.com/apikey)');
+  function detectProvider(key) {
+    if (!key) return null;
+    if (key.startsWith('sk-or-')) return 'openrouter';
+    if (key.startsWith('AIzaSy') || key.startsWith('AQ.') || key.startsWith('ya29.')) return 'gemini';
+    return null;
+  }
+
+  function getModel(provider) {
+    try {
+      const saved = localStorage.getItem('admitica.ai_model_' + provider);
+      if (saved) return saved;
+    } catch {}
+    return DEFAULT_MODELS[provider];
+  }
+
+  function setModel(provider, m) {
+    try { localStorage.setItem('admitica.ai_model_' + provider, m || DEFAULT_MODELS[provider]); } catch {}
+  }
+
+  // ===== Provider implementations =====
+
+  async function callOpenRouter(apiKey, prompt, opts) {
+    const model = getModel('openrouter');
+    const messages = [];
+    if (opts.system) messages.push({ role: 'system', content: opts.system });
+    messages.push({ role: 'user', content: prompt });
+
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': location.origin,
+        'X-Title': 'Admitica',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: opts.temperature != null ? opts.temperature : 0.7,
+        max_tokens: opts.maxTokens || 2048,
+      }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      let parsed = null; try { parsed = JSON.parse(txt); } catch {}
+      const errMsg = parsed?.error?.message || txt;
+      console.error('[OpenRouter error]', { status: res.status, errMsg, model, full: parsed || txt });
+      if (res.status === 401) throw new Error('OpenRouter: неверный ключ (должен начинаться с sk-or-v1-)');
+      if (res.status === 402) throw new Error('OpenRouter: закончились бесплатные кредиты, попробуй другую модель или пополни баланс');
+      if (res.status === 429) throw new Error('OpenRouter лимит запросов: ' + errMsg.slice(0, 150));
+      throw new Error(`OpenRouter ${res.status}: ${errMsg.slice(0, 200)}`);
     }
 
-    opts = opts || {};
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content;
+    if (!text) throw new Error('Пустой ответ от ' + model);
+    return text;
+  }
+
+  async function callGemini(apiKey, prompt, opts) {
+    const model = getModel('gemini');
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const isBearer = apiKey.startsWith('AQ.') || apiKey.startsWith('ya29.');
+
     const body = {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
@@ -36,110 +90,78 @@
         maxOutputTokens: opts.maxTokens || 2048,
       },
     };
-    if (opts.system) {
-      body.systemInstruction = { parts: [{ text: opts.system }] };
-    }
+    if (opts.system) body.systemInstruction = { parts: [{ text: opts.system }] };
 
-    const model = getModel();
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-
-    // AQ.* keys are Gemini Express Mode tokens — use Bearer auth
-    // AIzaSy* keys are classic API keys — use ?key= query param
-    const isBearer = API_KEY.startsWith('AQ.') || API_KEY.startsWith('ya29.');
     const headers = { 'Content-Type': 'application/json' };
     let url = endpoint;
-    if (isBearer) {
-      headers['Authorization'] = `Bearer ${API_KEY}`;
-    } else {
-      url = `${endpoint}?key=${encodeURIComponent(API_KEY)}`;
-    }
+    if (isBearer) headers['Authorization'] = `Bearer ${apiKey}`;
+    else url = `${endpoint}?key=${encodeURIComponent(apiKey)}`;
 
-    let res;
-    try {
-      res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-      });
-    } catch (e) {
-      throw new Error('Сеть недоступна: ' + e.message);
-    }
-
-    // If Bearer auth failed with 401/403, retry with ?key= (in case it's a hybrid key)
-    if (!res.ok && isBearer && (res.status === 401 || res.status === 403)) {
-      try {
-        res = await fetch(`${endpoint}?key=${encodeURIComponent(API_KEY)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-      } catch {}
-    }
+    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
 
     if (!res.ok) {
-      const errText = await res.text();
-      let parsed = null;
-      try { parsed = JSON.parse(errText); } catch {}
-      const errMsg = parsed?.error?.message || errText;
-      const errStatus = parsed?.error?.status || '';
-
-      // Log full details to console for debugging
-      console.error('[Gemini API error]', {
-        httpStatus: res.status,
-        apiStatus: errStatus,
-        message: errMsg,
-        fullResponse: parsed || errText,
-        endpoint,
-        model,
-        authMethod: isBearer ? 'Bearer header' : 'API key query param',
-        keyPrefix: API_KEY.slice(0, 8) + '...',
-      });
-
-      if (res.status === 400) {
-        throw new Error(`Gemini 400: ${errMsg.slice(0, 180)} — проверь формат ключа (должен быть AIzaSy..., 39 символов). Открой DevTools → Console для деталей.`);
-      }
-      if (res.status === 401 || res.status === 403) {
-        throw new Error(`Gemini ${res.status}: ключ отклонён. Возможно нужно включить Generative Language API в Google Cloud Console для этого проекта. Или получи новый ключ: aistudio.google.com/apikey`);
-      }
-      if (res.status === 429) {
-        // Could be real quota OR project-level restriction
-        const isQuotaZero = /quota.{0,30}(zero|0)|exceeded.{0,20}limit.{0,20}0|RESOURCE_EXHAUSTED/i.test(errMsg + ' ' + errStatus);
-        if (isQuotaZero) {
-          throw new Error(`Gemini вернул 429, но похоже квота этого проекта = 0. Это значит API не активирован для твоего проекта или ключ от другого сервиса (не Generative Language API). Решение: получи ключ на aistudio.google.com/apikey (формат AIzaSy...). Подробности в Console.`);
-        }
-        throw new Error(`Gemini 429: ${errMsg.slice(0, 180)} — детали в DevTools Console.`);
-      }
+      const txt = await res.text();
+      let parsed = null; try { parsed = JSON.parse(txt); } catch {}
+      const errMsg = parsed?.error?.message || txt;
+      console.error('[Gemini error]', { status: res.status, errMsg, model, full: parsed || txt });
+      if (/expired/i.test(errMsg)) throw new Error('Gemini: ключ истёк, получи новый на aistudio.google.com/apikey');
+      if (res.status === 400) throw new Error(`Gemini 400: ${errMsg.slice(0, 180)}`);
+      if (res.status === 401 || res.status === 403) throw new Error(`Gemini ${res.status}: ключ отклонён, проверь активацию Generative Language API`);
+      if (res.status === 429) throw new Error('Gemini: лимит запросов (' + errMsg.slice(0, 120) + ')');
       throw new Error(`Gemini ${res.status}: ${errMsg.slice(0, 200)}`);
     }
 
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new Error('Пустой ответ от модели (возможно блокировка safety фильтрами)');
-    }
+    if (!text) throw new Error('Пустой ответ от Gemini (возможно safety filter)');
     return text;
   }
 
-  // Extract first JSON object/array from text (LLMs often wrap in markdown)
+  // ===== Main entry =====
+
+  async function complete(prompt, opts) {
+    opts = opts || {};
+    const apiKey = getKey();
+    if (!apiKey) {
+      throw new Error('AI ключ не настроен. Открой Профиль → "AI ключ" и вставь ключ (OpenRouter sk-or-v1-... или Gemini AIzaSy...).');
+    }
+    const provider = detectProvider(apiKey);
+    if (!provider) {
+      throw new Error('Неизвестный формат ключа. Поддерживаются: OpenRouter (sk-or-v1-...) и Gemini (AIzaSy.../AQ....).');
+    }
+    if (provider === 'openrouter') return callOpenRouter(apiKey, prompt, opts);
+    return callGemini(apiKey, prompt, opts);
+  }
+
   function extractJson(text) {
     if (!text) return null;
-    // Strip markdown code fence
     const cleaned = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
     const arrMatch = cleaned.match(/\[[\s\S]*\]/);
     const objMatch = cleaned.match(/\{[\s\S]*\}/);
     let m = null;
     if (arrMatch && objMatch) {
       m = cleaned.indexOf(arrMatch[0]) < cleaned.indexOf(objMatch[0]) ? arrMatch : objMatch;
-    } else {
-      m = arrMatch || objMatch;
-    }
+    } else m = arrMatch || objMatch;
     if (!m) return null;
     try { return JSON.parse(m[0]); } catch { return null; }
   }
 
-  function setModel(m) { try { localStorage.setItem('admitica.gemini_model', m || DEFAULT_MODEL); } catch {} }
-  window.ai = { complete, extractJson, getKey, setKey, getModel, setModel };
+  window.ai = {
+    complete,
+    extractJson,
+    getKey,
+    setKey,
+    getProvider: () => detectProvider(getKey()),
+    getModel: () => {
+      const p = detectProvider(getKey());
+      return p ? getModel(p) : '';
+    },
+    setModel: (m) => {
+      const p = detectProvider(getKey());
+      if (p) setModel(p, m);
+    },
+  };
 
-  // Backward-compat for desktop code that uses window.claude.complete
+  // Backward-compat
   window.claude = { complete: (prompt) => complete(prompt) };
 })();

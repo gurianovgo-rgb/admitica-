@@ -616,7 +616,7 @@ const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap,
     setAiAnswer('');
     try {
       const reply = await ai(
-        `Кратко (3-4 предложения, по-русски) расскажи абитуриенту: главные плюсы программы, кому подойдёт, на что обратить внимание при подаче. Без воды, конкретно.\n\nПрограмма: ${item.name}\nСтрана: ${item.country}\nНаправление: ${item.field || item.industry || ''}\nДедлайн: ${item.deadline || 'rolling'}\nСтоимость: ${item.tuition || item.amount || item.stipend || 'не указана'}\nОписание: ${item.desc || ''}`,
+        `Кратко (3-4 предложения) расскажи абитуриенту: главные плюсы программы, кому подойдёт, на что обратить внимание при подаче. Без воды, конкретно.\n\nПрограмма: ${item.name}\nСтрана: ${item.country}\nНаправление: ${item.field || item.industry || ''}\nДедлайн: ${item.deadline || 'rolling'}\nСтоимость: ${item.tuition || item.amount || item.stipend || 'не указана'}\nОписание: ${item.desc || ''}`,
         { temperature: 0.7, maxTokens: 500 }
       );
       setAiAnswer(reply);
@@ -959,7 +959,7 @@ const Resume = ({ onBack }) => {
         }
       } else {
         const reply = await ai(
-          `Ты помогаешь собрать резюме. Пользователь рассказал о достижении. Задай ОДИН короткий уточняющий вопрос (1-2 предложения, на русском), чтобы добавить конкретику — числа, метрики, роль. Не повторяйся, не благодари.\n\nСообщение: ${userMsg}`,
+          `Ты помогаешь собрать резюме. Пользователь рассказал о достижении. Задай ОДИН короткий уточняющий вопрос (1-2 предложения), чтобы добавить конкретику — числа, метрики, роль. Не повторяйся, не благодари.\n\nСообщение: ${userMsg}`,
           { temperature: 0.7, maxTokens: 150 }
         );
         setMsgs(prev => [...prev, { from: 'ai', txt: reply.trim() }]);

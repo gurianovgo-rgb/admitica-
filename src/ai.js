@@ -118,6 +118,33 @@
     return text;
   }
 
+  // ===== Language detection =====
+  // Maps a BCP-47 code (navigator.language) to a human language name the model understands.
+  const LANG_NAMES = {
+    ru: 'русском', en: 'English', uk: 'українській', be: 'беларускай',
+    kk: 'қазақ тілінде', uz: "o'zbek tilida", de: 'Deutsch', fr: 'français',
+    es: 'español', it: 'italiano', pt: 'português', pl: 'polskim', tr: 'Türkçe',
+    zh: '中文', ja: '日本語', ko: '한국어', ar: 'العربية', hi: 'हिन्दी',
+    ka: 'ქართულად', hy: 'հայերեն', az: 'Azərbaycan dilində',
+  };
+
+  function detectLang() {
+    let code = 'ru';
+    try {
+      const nav = navigator.language || (navigator.languages && navigator.languages[0]) || 'ru';
+      code = nav.toLowerCase().split('-')[0];
+    } catch {}
+    return code;
+  }
+
+  function langInstruction() {
+    const code = detectLang();
+    const name = LANG_NAMES[code] || LANG_NAMES.en;
+    // Phrased so it works whether the name is in the target language or English.
+    // JSON-safe: only human-readable text is translated, structural keys/tags stay as specified.
+    return `Respond in the user's system language: ${name} (locale: ${code}). Write all human-readable text in that language. If the response is JSON, keep the keys and any specified enum/tag values exactly as instructed (in English), and translate only the natural-language text content.`;
+  }
+
   // ===== Main entry =====
 
   async function complete(prompt, opts) {
@@ -129,6 +156,11 @@
     const provider = detectProvider(apiKey);
     if (!provider) {
       throw new Error('Неизвестный формат ключа. Поддерживаются: OpenRouter (sk-or-v1-...) и Gemini (AIzaSy.../AQ....).');
+    }
+    // Inject language instruction into the system prompt (unless caller opts out).
+    if (!opts.noLang) {
+      const li = langInstruction();
+      opts = { ...opts, system: opts.system ? `${opts.system}\n\n${li}` : li };
     }
     if (provider === 'openrouter') return callOpenRouter(apiKey, prompt, opts);
     return callGemini(apiKey, prompt, opts);
@@ -150,6 +182,7 @@
   window.ai = {
     complete,
     extractJson,
+    detectLang,
     getProvider: () => detectProvider(getKey()),
     getModel: () => {
       const p = detectProvider(getKey());

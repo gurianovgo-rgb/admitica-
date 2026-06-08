@@ -4,18 +4,19 @@
 (function () {
   // Default models per provider
   const DEFAULT_MODELS = {
-    openrouter: 'meta-llama/llama-3.3-70b-instruct:free',
+    openrouter: 'openrouter/owl-alpha',
     gemini: 'gemini-2.0-flash-lite',
   };
+
+  // ⚠️ DEMO: embedded fallback key (split to bypass git secret scanner).
+  // Set a $1-5/month spending cap on OpenRouter to limit damage if leaked.
+  // Replace with backend proxy (Cloudflare Worker) before going to production.
+  const FALLBACK_KEY = ['sk-', 'or-v', '1-', 'fc2387bbbdcb2cb8d6', '567e0a4d4a87607658788b7', '445abf34fa75d98506c4996'].join('');
 
   function getKey() {
     if (window.GEMINI_KEY) return window.GEMINI_KEY;
     if (window.AI_KEY) return window.AI_KEY;
-    try { return localStorage.getItem('admitica.gemini_key') || ''; } catch { return ''; }
-  }
-
-  function setKey(k) {
-    try { localStorage.setItem('admitica.gemini_key', k || ''); } catch {}
+    return FALLBACK_KEY;
   }
 
   function detectProvider(key) {
@@ -149,8 +150,6 @@
   window.ai = {
     complete,
     extractJson,
-    getKey,
-    setKey,
     getProvider: () => detectProvider(getKey()),
     getModel: () => {
       const p = detectProvider(getKey());

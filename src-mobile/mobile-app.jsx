@@ -1116,57 +1116,6 @@ const Resume = ({ onBack }) => {
   );
 };
 
-// ===== AI Key card =====
-const AIKeyCard = () => {
-  const [key, setKeyState] = useState(() => window.ai?.getKey() || '');
-  const [visible, setVisible] = useState(false);
-  const toast = React.useContext(ToastCtx);
-  const masked = key ? key.slice(0, 6) + '...' + key.slice(-4) : '';
-
-  const save = () => {
-    window.ai.setKey(key.trim());
-    toast && toast(key.trim() ? 'AI ключ сохранён' : 'AI ключ удалён');
-    setVisible(false);
-  };
-  const clear = () => {
-    setKeyState('');
-    window.ai.setKey('');
-    toast && toast('AI ключ удалён');
-  };
-
-  return (
-    <div className="card">
-      <div style={{ fontSize: 13, color: 'var(--stone-2)', marginBottom: 8, lineHeight: 1.45 }}>
-        Получить ключ: <b>aistudio.google.com/apikey</b>. Хранится только в этом браузере.
-      </div>
-      {visible ? (
-        <>
-          <input
-            type="text"
-            autoFocus
-            value={key}
-            onChange={(e) => setKeyState(e.target.value)}
-            placeholder="AIzaSy... или AQ.Ab8R..."
-            style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'white', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
-          />
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <button className="btn btn-blue btn-block" onClick={save}>Сохранить</button>
-            <button className="btn btn-ghost btn-block" onClick={() => { setKeyState(window.ai?.getKey() || ''); setVisible(false); }}>Отмена</button>
-          </div>
-        </>
-      ) : key ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="pill pill-teal" style={{ fontFamily: 'monospace' }}>{masked}</span>
-          <button className="btn btn-ghost btn-sm" onClick={() => setVisible(true)} style={{ marginLeft: 'auto' }}>Изменить</button>
-          <button className="btn btn-ghost btn-sm" onClick={clear} style={{ color: 'var(--red)' }}>Удалить</button>
-        </div>
-      ) : (
-        <button className="btn btn-blue btn-block" onClick={() => setVisible(true)}>+ Добавить AI ключ</button>
-      )}
-    </div>
-  );
-};
-
 // ===== Profile tab (replaces Settings/More) =====
 const ProfileTab = ({ name, setName, plan, setPlan, savedIds, priorities, roadmaps, onReset, onSwitchDesktop, openTool }) => {
   const [editName, setEditName] = useState(false);
@@ -1264,9 +1213,6 @@ const ProfileTab = ({ name, setName, plan, setPlan, savedIds, priorities, roadma
             </div>
           ))}
         </div>
-
-        <div className="section-h"><h2>AI ключ</h2></div>
-        <AIKeyCard />
 
         <div className="section-h"><h2>Данные</h2></div>
         <button className="more-item" style={{ width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={onSwitchDesktop}>

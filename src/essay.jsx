@@ -9,9 +9,30 @@ const SAMPLE_ESSAY = `My fascination with economics did not start in a lecture h
 
 At Lyceum №1, I built my schedule around this question. I won the regional Olympiad in Mathematics, took two extracurricular courses in microeconomics through a partnership with HSE, and led a research project on inflation expectations among small business owners in our city. I learned that good economics requires not just elegant equations but also the humility to listen to the people behind the data.`;
 
+// Build initial drafts map: migrate any legacy per-key storage, default Bocconi to sample.
+const initialDrafts = () => {
+  const map = {};
+  ESSAY_PROMPTS.forEach((p) => {
+    let saved = null;
+    try {
+      const s = localStorage.getItem('admitica.essay_' + p.id);
+      if (s != null) saved = JSON.parse(s);
+    } catch {}
+    const isBocconi = p.id === ESSAY_PROMPTS[0].id;
+    // Restore Bocconi sample if missing OR previously corrupted to empty by the old save/load race.
+    if (saved != null && !(isBocconi && !String(saved).trim())) map[p.id] = saved;
+    else if (isBocconi) map[p.id] = SAMPLE_ESSAY;
+    else map[p.id] = '';
+  });
+  return map;
+};
+
 const Essay = () => {
   const [activePrompt, setActivePrompt] = useState(ESSAY_PROMPTS[0]);
-  const [text, setText] = usePersist('essay_' + ESSAY_PROMPTS[0].id, SAMPLE_ESSAY);
+  // Single source of truth: all drafts in one persisted object keyed by prompt id.
+  const [drafts, setDrafts] = usePersist('essayDrafts', initialDrafts());
+  const text = drafts[activePrompt.id] != null ? drafts[activePrompt.id] : '';
+  const setText = (val) => setDrafts((d) => ({ ...d, [activePrompt.id]: val }));
   const [feedback, setFeedback] = useState([
     { type: 'flow', txt: 'Сильное открывающее предложение с конкретной сценой. Это заметно выделяет вас среди абстрактных вступлений.' },
     { type: 'concrete', txt: 'Хороший переход от личной истории к академической мотивации. Можно усилить, добавив конкретный результат олимпиады (например, «вошёл в топ-5%»).' },
@@ -21,17 +42,6 @@ const Essay = () => {
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
   const target = 1000;
   const showToast = React.useContext(ToastCtx);
-
-  // Reload essay when prompt changes
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem('admitica.essay_' + activePrompt.id);
-      setText(s ? JSON.parse(s) : '');
-    } catch {}
-  }, [activePrompt.id]);
-  useEffect(() => {
-    try { localStorage.setItem('admitica.essay_' + activePrompt.id, JSON.stringify(text)); } catch {}
-  }, [activePrompt.id, text]);
 
   const askAI = async () => {
     setLoading(true);
@@ -106,7 +116,7 @@ ${text}`
           </div>
 
           <div className="essay-prompt">
-            <div className="muted" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Промпт</div>
+            <div className="muted" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Задача</div>
             {activePrompt.prompt}
           </div>
         </div>
@@ -140,7 +150,6 @@ ${text}`
             <div className="row gap-8 mb-16">
               <Ico.sparkle w={14} />
               <strong style={{ fontSize: 13, color: 'var(--purple-dark)' }}>AI-замечания</strong>
-              <span className="muted" style={{ fontSize: 12, marginLeft: 'auto' }}>Powered by Claude</span>
             </div>
             {feedback.map((f, i) => (
               <div className="feedback-item" key={i}>

@@ -706,25 +706,32 @@ const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap,
 };
 
 // ===== Essay screen — matches desktop logic =====
+// Build initial drafts map: migrate legacy per-key storage, default Bocconi to sample.
+const initialEssayDrafts = () => {
+  const map = {};
+  ESSAY_PROMPTS.forEach((p) => {
+    let saved = null;
+    try {
+      const s = localStorage.getItem('admitica.essay_' + p.id);
+      if (s != null) saved = JSON.parse(s);
+    } catch {}
+    const isBocconi = p.id === ESSAY_PROMPTS[0].id;
+    // Restore Bocconi sample if missing OR previously corrupted to empty by the old save/load race.
+    if (saved != null && !(isBocconi && !String(saved).trim())) map[p.id] = saved;
+    else if (isBocconi) map[p.id] = SAMPLE_ESSAY;
+    else map[p.id] = '';
+  });
+  return map;
+};
+
 const Essay = ({ onBack }) => {
   const [activePromptId, setActivePromptId] = useState(ESSAY_PROMPTS[0].id);
   const activePrompt = ESSAY_PROMPTS.find(p => p.id === activePromptId);
 
-  const [text, setText] = useState(() => {
-    try {
-      const s = localStorage.getItem('admitica.essay_' + activePromptId);
-      return s ? JSON.parse(s) : SAMPLE_ESSAY;
-    } catch { return SAMPLE_ESSAY; }
-  });
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem('admitica.essay_' + activePromptId);
-      setText(s ? JSON.parse(s) : (activePromptId === ESSAY_PROMPTS[0].id ? SAMPLE_ESSAY : ''));
-    } catch {}
-  }, [activePromptId]);
-  useEffect(() => {
-    try { localStorage.setItem('admitica.essay_' + activePromptId, JSON.stringify(text)); } catch {}
-  }, [activePromptId, text]);
+  // Single source of truth: all drafts in one persisted object keyed by id (no save/load race).
+  const [drafts, setDrafts] = usePersist('essayDrafts', initialEssayDrafts());
+  const text = drafts[activePromptId] != null ? drafts[activePromptId] : '';
+  const setText = (val) => setDrafts(d => ({ ...d, [activePromptId]: val }));
 
   const [feedback, setFeedback] = useState([
     { type: 'flow', txt: 'Сильное открывающее предложение с конкретной сценой. Это заметно выделяет вас среди абстрактных вступлений.' },
@@ -773,8 +780,8 @@ const Essay = ({ onBack }) => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ESSAY_PROMPTS.map(p => {
               const isActive = activePromptId === p.id;
-              let wc = 0;
-              try { const s = localStorage.getItem('admitica.essay_' + p.id); wc = s ? JSON.parse(s).trim().split(/\s+/).filter(Boolean).length : (p.id === ESSAY_PROMPTS[0].id ? SAMPLE_ESSAY.trim().split(/\s+/).filter(Boolean).length : 0); } catch {}
+              const draftText = drafts[p.id] != null ? drafts[p.id] : '';
+              const wc = draftText.trim().split(/\s+/).filter(Boolean).length;
               return (
                 <button
                   key={p.id}
@@ -794,7 +801,7 @@ const Essay = ({ onBack }) => {
         </div>
 
         <div className="card" style={{ marginBottom: 12, background: 'var(--surface)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', marginBottom: 6, fontWeight: 500 }}>Промпт</div>
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', marginBottom: 6, fontWeight: 500 }}>Задача</div>
           <div style={{ fontSize: 13, lineHeight: 1.5 }}>{activePrompt.prompt}</div>
         </div>
 

@@ -598,6 +598,7 @@ select.filter-sel {
   .main { padding: 24px 24px 60px; }
   .essay-grid, .resume-grid { grid-template-columns: 1fr; }
   .detail-grid { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* 1024px: filter panel stacks above the cards */

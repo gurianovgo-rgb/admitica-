@@ -80,6 +80,31 @@ export interface RoadmapEntry {
   checks?: Record<string, boolean[]>
 }
 
+// Shape returned by window.getEssayRequirements (src/essayReqs.js)
+export interface EssayRequirements {
+  type: string
+  wordLimit: number
+  prompt: string
+  requirements: string[]
+  tips: string[]
+}
+
+// Stored under admitica.achievements (src/resume.jsx) — keep the shape byte-compatible
+export interface Achievement {
+  id: string
+  title: string
+  org: string
+  desc: string
+  skills: string[]
+}
+
+export interface AiCompleteOptions {
+  system?: string
+  temperature?: number
+  maxTokens?: number
+  noLang?: boolean
+}
+
 declare global {
   interface Window {
     AdmiticaData: {
@@ -89,5 +114,27 @@ declare global {
     }
     buildRoadmapStages: (u: University) => RoadmapStage[]
     ROADMAP_STAGE_COUNT: number
+
+    // src/ai.js — provider-agnostic AI client (OpenRouter / Gemini)
+    ai: {
+      complete: (prompt: string, opts?: AiCompleteOptions) => Promise<string>
+      extractJson: (text: string) => unknown
+      detectLang: () => string
+      getProvider: () => "openrouter" | "gemini" | null
+      getModel: () => string
+      setModel: (m: string) => void
+    }
+
+    // src/essayReqs.js
+    getEssayRequirements: (u: University) => EssayRequirements | null
+
+    // src/downloads.js — DOCX/PDF export (docx + pdfmake from CDN)
+    getUserName: () => string
+    downloadEssayDocx: (title: string, text: string) => void
+    downloadEssayPdf: (title: string, text: string) => void
+    downloadResumeDocx: (userName: string, achievements: Achievement[]) => void
+    downloadResumePdf: (userName: string, achievements: Achievement[]) => void
+    docx?: unknown
+    pdfMake?: unknown
   }
 }

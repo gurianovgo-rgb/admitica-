@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ============================================================
+   Admitica design tokens — dark theme, 21st.dev-grade surface.
+   Accent is themeable via [data-accent] on <html>:
+     indigo (default) · cyan · amber
+   ============================================================ */
+
+@theme {
+  /* Type */
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Radii: the product default is rounded-2xl */
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+
+  /* Motion: ease-out, 200–300ms */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 200ms;
+  --duration-base: 250ms;
+  --duration-slow: 300ms;
+
+  /* Dark surface scale */
+  --color-bg: #09090b;
+  --color-surface: #101014;
+  --color-card: #141419;
+  --color-card-2: #1a1a21;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Text scale */
+  --color-fg: #fafafa;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-faint: #63636b;
+
+  /* Accent (defaults = deep violet-indigo; overridden by [data-accent]) */
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-glow: var(--accent-glow);
+
+  /* Semantic */
+  --color-positive: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+}
+
+/* ---- Accent variants (design decision pending — switchable live) ---- */
+:root,
+[data-accent="indigo"] {
+  --accent: #7c6cf6;            /* deep violet-indigo */
+  --accent-soft: rgba(124, 108, 246, 0.14);
+  --accent-fg: #ffffff;
+  --accent-glow: rgba(124, 108, 246, 0.35);
+}
+[data-accent="cyan"] {
+  --accent: #22d3ee;            /* electric cyan */
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --accent-fg: #06222a;
+  --accent-glow: rgba(34, 211, 238, 0.3);
+}
+[data-accent="amber"] {
+  --accent: #f5a623;            /* warm amber */
+  --accent-soft: rgba(245, 166, 35, 0.13);
+  --accent-fg: #241500;
+  --accent-glow: rgba(245, 166, 35, 0.3);
+}
+
+/* ---- Base ---- */
+html, body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--accent); color: var(--accent-fg); }
+
+/* Soft ambient glow behind the hero */
+.hero-glow {
+  background:
+    radial-gradient(600px 320px at 18% 0%, var(--accent-glow), transparent 70%),
+    radial-gradient(480px 260px at 85% 12%, rgba(255, 255, 255, 0.05), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

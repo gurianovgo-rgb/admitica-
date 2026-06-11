@@ -524,6 +524,44 @@ ul { padding: 0; margin: 0; list-style: none; }
 .fade-in { animation: fadeIn .25s; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ===== Inline roadmap (Priorities) ===== */
+.rm-expand { border-top: 1px solid var(--border); padding: 12px; background: rgba(44,44,42,0.015); border-radius: 0 0 12px 12px; }
+.rm-rail { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+.rm-rail::-webkit-scrollbar { display: none; }
+.rm-chip {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px; text-align: left;
+  background: var(--white); border: 1.5px solid var(--border);
+}
+.rm-chip.active { border-color: var(--teal); background: rgba(29,158,117,0.06); }
+.rm-chip.done .rm-chip-num { background: var(--teal); color: white; border-color: var(--teal); }
+.rm-chip-num {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 11px; font-weight: 500;
+  background: var(--surface); color: var(--stone-2); border: 1px solid var(--border);
+}
+.rm-chip-name { display: block; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.rm-chip-date { display: block; font-size: 10.5px; color: var(--stone-2); white-space: nowrap; }
+.rm-stage-detail { margin-top: 10px; padding: 14px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; }
+.chk-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 6px; border-radius: 8px; font-size: 13px; line-height: 1.45;
+}
+.chk-row input { accent-color: var(--teal); margin-top: 2px; flex-shrink: 0; width: 17px; height: 17px; }
+.chk-row.checked span { color: var(--stone-2); text-decoration: line-through; }
+
+/* ===== Filter toggle row ===== */
+.fil-toggle { display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding: 4px 0; }
+.fil-toggle .sw { width: 38px; height: 22px; border-radius: 14px; background: var(--stone-3); position: relative; transition: background .15s; flex-shrink: 0; }
+.fil-toggle .sw::after { content: ''; position: absolute; left: 2px; top: 2px; width: 18px; height: 18px; border-radius: 50%; background: white; transition: transform .15s; }
+.fil-toggle .sw.on { background: var(--teal); }
+.fil-toggle .sw.on::after { transform: translateX(16px); }
+
+/* ===== Socials (Profile) ===== */
+.soc-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); font-size: 14px; font-weight: 500; color: var(--stone); }
+.soc-row + .soc-row { margin-top: 8px; }
+.soc-row .si { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: white; flex-shrink: 0; }
+
 /* On actual touch devices — fullscreen, no phone-frame mockup */
 @media (hover: none) and (pointer: coarse), (max-width: 480px) {
   body {
@@ -563,6 +601,8 @@ ul { padding: 0; margin: 0; list-style: none; }
 <script src="src/downloads.js"></script>
 <script src="config.js" onerror="this.onerror=null"></script>
 <script src="src/ai.js"></script>
+<script src="src/roadmapData.js"></script>
+<script src="src/essayReqs.js"></script>
 <script type="text/babel" src="src-mobile/mobile-app.jsx"></script>
 </body>
 </html>

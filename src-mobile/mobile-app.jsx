@@ -36,6 +36,46 @@ const allItems = () => [
 ];
 const byId = (id) => allItems().find(x => x.id === id);
 
+// Roadmap progress derived from per-stage checklists (uses window.buildRoadmapStages)
+const roadmapProgress = (rm, item) => {
+  const stages = (item && item.program && window.buildRoadmapStages) ? window.buildRoadmapStages(item) : null;
+  if (!stages) {
+    const total = 7;
+    const done = Math.min(rm.step || 0, total);
+    return { done, total, pct: Math.round((done / total) * 100), currentName: null, stages: null };
+  }
+  let checked = 0, boxes = 0, currentName = null, doneStages = 0;
+  stages.forEach((s) => {
+    const st = (rm.checks && rm.checks[s.id]) || [];
+    const full = s.checklist.length > 0 && s.checklist.every((_, i) => st[i]);
+    s.checklist.forEach((_, i) => { boxes++; if (st[i]) checked++; });
+    if (full) doneStages++;
+    else if (!currentName) currentName = s.name;
+  });
+  return { done: doneStages, total: stages.length, pct: boxes ? Math.round((checked / boxes) * 100) : 0, currentName, stages };
+};
+
+// Grants relevant to a university: named awards > same country > EU-wide > field match
+const grantsForUni = (u) => {
+  const uniWord = (u.name || '').split(/\s+/).find(w => w.length > 4) || u.name;
+  const generic = /все|любые|200\+|программ/i;
+  return D.grants
+    .map((g) => {
+      let score = 0;
+      if (g.name.toLowerCase().includes(uniWord.toLowerCase()) || (g.desc || '').toLowerCase().includes(uniWord.toLowerCase())) score += 5;
+      if (g.country === u.country) score += 3;
+      if (g.country === 'ЕС') score += 2;
+      if (generic.test(g.field || '')) score += 1;
+      else if (u.field && (g.field || '').toLowerCase().includes(u.field.split(/[,\s]/)[0].toLowerCase())) score += 2;
+      if (u.degree && (g.degree || '').toLowerCase().includes(u.degree.split(/[\s/]/)[0].toLowerCase())) score += 1;
+      return { g, score };
+    })
+    .filter(x => x.score >= 2)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(x => x.g);
+};
+
 // ===== Icons =====
 const I = {
   home:     (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>),
@@ -72,10 +112,11 @@ const QUOTES = [
 ];
 
 // ===== Essay prompts & sample (from desktop) =====
+// Requirements per university come from window.getEssayRequirements (src/essayReqs.js)
 const ESSAY_PROMPTS = [
-  { id: 'ps_bocconi', target: 'Bocconi · Personal Statement', prompt: 'Опишите свою академическую и личную мотивацию для Economics & Management. Какой опыт привёл вас к этому выбору? Как программа Bocconi поможет достичь ваших долгосрочных целей? (макс. 1000 слов)' },
-  { id: 'sop_lse', target: 'LSE · Statement of Purpose', prompt: 'Расскажите о своей подготовке к BSc Economics, исследовательских интересах и долгосрочных карьерных целях. (макс. 800 слов)' },
-  { id: 'mot_hec', target: 'HEC · Motivation Letter', prompt: 'Why HEC, why now, why you? Покажите fit с программой и культурой школы. (макс. 600 слов)' },
+  { id: 'ps_bocconi', uniId: 'u1', target: 'Bocconi · Personal Statement' },
+  { id: 'sop_lse', uniId: 'u2', target: 'LSE · Statement of Purpose' },
+  { id: 'mot_hec', uniId: 'u3', target: 'HEC · Motivation Letter' },
 ];
 const SAMPLE_ESSAY = `My fascination with economics did not start in a lecture hall. It began on a Saturday afternoon in my mother's small bakery in Tashkent, watching her decide whether to raise the price of a loaf by twenty cents. I was eleven, and I already understood that this number could feed my brother for a week — or send our regular customer back home empty-handed. That moment planted a question I have been chasing ever since: how do markets, so abstract on paper, translate into the everyday choices of real families?
 
@@ -199,12 +240,13 @@ const HomeTab = ({ name, savedIds, priorities, roadmaps, openDetail, setTab, ope
   const [qIdx, setQIdx] = useState(() => Math.floor(Math.random() * QUOTES.length));
   const q = QUOTES[qIdx];
 
-  const totalSteps = 4;
-  const pct = roadmaps.length
-    ? Math.round(roadmaps.reduce((s, r) => s + (r.step / totalSteps), 0) / roadmaps.length * 100)
-    : 0;
-  const currentRm = roadmaps[0];
-  const currentItem = currentRm ? byId(currentRm.itemId) : null;
+  const progs = roadmaps
+    .map(r => ({ r, item: byId(r.itemId) }))
+    .filter(x => x.item)
+    .map(x => ({ ...x, p: roadmapProgress(x.r, x.item) }));
+  const pct = progs.length ? Math.round(progs.reduce((s, x) => s + x.p.pct, 0) / progs.length) : 0;
+  const current = progs[0] || null;
+  const currentItem = current ? current.item : null;
 
   const prioItems = priorities.map(byId).filter(Boolean);
 
@@ -237,8 +279,8 @@ const HomeTab = ({ name, savedIds, priorities, roadmaps, openDetail, setTab, ope
           <div className="ph-foot">
             <div className="ph-steps">
               {currentItem
-                ? <>Сейчас: <b>{currentItem.name}</b><br/>Шаг {currentRm.step + 1} из {totalSteps}</>
-                : <>Добавь программу в Roadmap, чтобы начать</>}
+                ? <>Сейчас: <b>{currentItem.name}</b><br/>Этап {Math.min(current.p.done + 1, current.p.total)} из {current.p.total}{current.p.currentName ? ` — ${current.p.currentName}` : ''}</>
+                : <>Добавь вуз в приоритеты, чтобы начать</>}
             </div>
             <button className="ph-chev" onClick={() => setTab('programs')}>{I.chev}</button>
           </div>
@@ -329,8 +371,19 @@ const FilterSheet = ({ open, onClose, kind, filters, setFilters }) => {
           </div>
         </div>
 
+        <div className="filter-group">
+          <label className="title">Дополнительно</label>
+          <div className="fil-toggle">
+            <span>Скрыть с истёкшим дедлайном</span>
+            <div
+              className={`sw ${filters.hideExpired ? 'on' : ''}`}
+              onClick={() => setFilters({ ...filters, hideExpired: !filters.hideExpired })}
+            />
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-ghost btn-block" onClick={() => setFilters({ country: [], field: [] })}>Сбросить</button>
+          <button className="btn btn-ghost btn-block" onClick={() => setFilters({ country: [], field: [], hideExpired: false })}>Сбросить</button>
           <button className="btn btn-blue btn-block" onClick={onClose}>Применить</button>
         </div>
       </div>
@@ -383,10 +436,11 @@ const FindTab = ({ savedIds, toggleSave, openDetail }) => {
     if (q && !((it.name + ' ' + (it.program || it.role || '') + ' ' + (it.field || it.industry || '')).toLowerCase().includes(q.toLowerCase()))) return false;
     if ((filters.country || []).length && !filters.country.includes(it.country)) return false;
     if ((filters.field || []).length && !filters.field.includes(it[fk])) return false;
+    if (filters.hideExpired && it.deadlineDays <= 0) return false;
     return true;
   });
 
-  const activeCount = (filters.country?.length || 0) + (filters.field?.length || 0);
+  const activeCount = (filters.country?.length || 0) + (filters.field?.length || 0) + (filters.hideExpired ? 1 : 0);
 
   return (
     <>
@@ -435,7 +489,7 @@ const FindTab = ({ savedIds, toggleSave, openDetail }) => {
 };
 
 // ===== Draggable priority list =====
-const DraggablePriorityList = ({ ids, onReorder, openDetail, toggleSave, savedIds }) => {
+const DraggablePriorityList = ({ ids, onReorder, openDetail, roadmaps, setRoadmaps }) => {
   const items = ids.map(byId).filter(Boolean);
   const [dragIdx, setDragIdx] = useState(null);
   const [dragY, setDragY] = useState(0);
@@ -468,6 +522,29 @@ const DraggablePriorityList = ({ ids, onReorder, openDetail, toggleSave, savedId
     setDragY(0);
   };
 
+  // Inline per-university roadmap (expanded accordion)
+  const [expandedId, setExpandedId] = useState(null);
+  const [activeStage, setActiveStage] = useState(null);
+
+  const rmFor = (itemId) => roadmaps.find(r => r.itemId === itemId);
+  const toggleExpand = (it) => {
+    if (!it.program) { openDetail(it); return; } // grants/internships: open detail
+    if (expandedId === it.id) { setExpandedId(null); return; }
+    if (!rmFor(it.id)) setRoadmaps([...roadmaps, { id: 'rm' + Date.now(), itemId: it.id, step: 0, checks: {} }]);
+    setExpandedId(it.id);
+    setActiveStage(null);
+  };
+  const toggleCheck = (itemId, stageId, idx) => {
+    setRoadmaps(roadmaps.map(r => {
+      if (r.itemId !== itemId) return r;
+      const checks = { ...(r.checks || {}) };
+      const arr = [...(checks[stageId] || [])];
+      arr[idx] = !arr[idx];
+      checks[stageId] = arr;
+      return { ...r, checks };
+    }));
+  };
+
   return (
     <div onPointerMove={onMove} onPointerUp={onEnd} onPointerCancel={onEnd} style={{ touchAction: dragIdx !== null ? 'none' : 'auto' }}>
       {items.length === 0 && (
@@ -484,36 +561,102 @@ const DraggablePriorityList = ({ ids, onReorder, openDetail, toggleSave, savedId
           if (dragIdx < i && i <= targetIdx) shift = -itemH;
           else if (dragIdx > i && i >= targetIdx) shift = itemH;
         }
+        const rm = rmFor(it.id);
+        const prog = rm && it.program ? roadmapProgress(rm, it) : null;
+        const isOpen = expandedId === it.id && dragIdx === null;
+        const stages = isOpen && window.buildRoadmapStages ? window.buildRoadmapStages(it) : null;
+        const stage = stages ? (stages.find(s => s.id === activeStage) || stages.find(s => s.name === (prog && prog.currentName)) || stages[0]) : null;
         return (
           <div
             key={it.id}
-            className="row-card"
             style={{
               transform: isDrag ? `translateY(${dragY}px) scale(1.02)` : `translateY(${shift}px)`,
               transition: isDrag ? 'none' : 'transform .18s',
               zIndex: isDrag ? 10 : 1,
               position: 'relative',
-              boxShadow: isDrag ? '0 12px 24px rgba(0,0,0,0.15)' : undefined,
               marginTop: i === 0 ? 0 : 10,
               opacity: isDrag ? 0.95 : 1,
             }}
-            onClick={() => !isDrag && openDetail(it)}
           >
-            <button
-              className="row-rank"
-              onPointerDown={(e) => onStart(i, e)}
-              style={{ cursor: 'grab', touchAction: 'none', background: isDrag ? 'var(--teal-dark)' : 'var(--mid-blue-dark)' }}
-              onClick={(e) => e.stopPropagation()}
-              aria-label="Перетащить"
+            <div
+              className="row-card"
+              style={{
+                margin: 0,
+                boxShadow: isDrag ? '0 12px 24px rgba(0,0,0,0.15)' : undefined,
+                borderRadius: isOpen ? '12px 12px 0 0' : undefined,
+              }}
+              onClick={() => !isDrag && toggleExpand(it)}
             >
-              {i + 1}
-            </button>
-            <FlagLogo flag={it.flag} color={it.color} />
-            <div className="row-info">
-              <div className="row-title">{it.name}</div>
-              <div className="row-meta">{it.country} · {it.field || it.industry}</div>
+              <button
+                className="row-rank"
+                onPointerDown={(e) => { setExpandedId(null); onStart(i, e); }}
+                style={{ cursor: 'grab', touchAction: 'none', background: isDrag ? 'var(--teal-dark)' : 'var(--mid-blue-dark)' }}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Перетащить"
+              >
+                {i + 1}
+              </button>
+              <FlagLogo flag={it.flag} color={it.color} />
+              <div className="row-info">
+                <div className="row-title">{it.name}</div>
+                <div className="row-meta">{it.country} · {it.field || it.industry}</div>
+                {prog && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    <div style={{ width: 90, height: 4, background: 'var(--surface)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: prog.pct + '%', height: '100%', background: 'var(--teal)' }} />
+                    </div>
+                    <span style={{ fontSize: 10.5, color: 'var(--stone-2)' }}>{prog.pct}% · этап {Math.min(prog.done + 1, prog.total)}/{prog.total}</span>
+                  </div>
+                )}
+              </div>
+              {it.program
+                ? <div className="row-chev" style={{ color: 'var(--stone-3)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}>{I.chev}</div>
+                : <div className="row-chev" style={{ color: 'var(--stone-3)' }}>{I.chev}</div>}
             </div>
-            <div className="row-chev" style={{ color: 'var(--stone-3)' }}>{I.drag}</div>
+
+            {isOpen && stages && (
+              <div className="rm-expand" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderTop: 'none' }}>
+                <div className="rm-rail">
+                  {stages.map((s, si) => {
+                    const st = (rm && rm.checks && rm.checks[s.id]) || [];
+                    const full = s.checklist.length > 0 && s.checklist.every((_, ci) => st[ci]);
+                    const isActive = stage && stage.id === s.id;
+                    return (
+                      <button key={s.id} className={`rm-chip ${full ? 'done' : ''} ${isActive ? 'active' : ''}`} onClick={() => setActiveStage(s.id)}>
+                        <span className="rm-chip-num">{full ? '✓' : si + 1}</span>
+                        <span>
+                          <span className="rm-chip-name">{s.name}</span>
+                          <span className="rm-chip-date">{s.date}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {stage && (
+                  <div className="rm-stage-detail">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      <strong style={{ fontSize: 14 }}>{stage.name}</strong>
+                      <span className="pill pill-blue">{stage.date}</span>
+                    </div>
+                    <p style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--stone-2)', margin: '0 0 10px' }}>{stage.details}</p>
+                    <div>
+                      {stage.checklist.map((c, ci) => {
+                        const st = (rm && rm.checks && rm.checks[stage.id]) || [];
+                        const on = !!st[ci];
+                        return (
+                          <label className={`chk-row ${on ? 'checked' : ''}`} key={ci}>
+                            <input type="checkbox" checked={on} onChange={() => toggleCheck(it.id, stage.id, ci)} />
+                            <span>{c}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openDetail(it)}>Детали программы</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
@@ -535,52 +678,20 @@ const ProgramsTab = ({ savedIds, priorities, setPriorities, toggleSave, togglePr
       <div className="tab-content">
         <div className="segmented">
           <button className={`seg-btn ${sub === 'saved' ? 'active' : ''}`} onClick={() => setSub('saved')}>Сохранённые</button>
-          <button className={`seg-btn ${sub === 'prio' ? 'active' : ''}`} onClick={() => setSub('prio')}>Приоритеты</button>
-          <button className={`seg-btn ${sub === 'rm' ? 'active' : ''}`} onClick={() => setSub('rm')}>Roadmap</button>
+          <button className={`seg-btn ${sub === 'prio' ? 'active' : ''}`} onClick={() => setSub('prio')}>Приоритеты и роадмап</button>
         </div>
 
-        {sub === 'rm' ? (
-          roadmaps.length === 0
-            ? <div className="card card-flat" style={{ textAlign: 'center', color: 'var(--stone-2)' }}>Нет дорожных карт</div>
-            : roadmaps.map(rm => {
-                const item = byId(rm.itemId);
-                if (!item) return null;
-                return (
-                  <div key={rm.id} className="card">
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <FlagLogo flag={item.flag} color={item.color} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="row-title">{item.name}</div>
-                        <div className="row-meta">{item.country}</div>
-                      </div>
-                    </div>
-                    <div className="rm-list" style={{ marginTop: 8 }}>
-                      {['Изучить программу', 'Подготовить документы', 'Подать заявку', 'Дождаться ответа'].map((step, i) => (
-                        <div key={i} className={`rm-row ${i < rm.step ? 'done' : i === rm.step ? 'current' : ''}`}>
-                          <div className="rm-circle">{i < rm.step ? '✓' : i + 1}</div>
-                          <div className="rm-text"><div className="rm-name">{step}</div></div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setRoadmaps(roadmaps.map(r => r.id === rm.id ? { ...r, step: Math.max(0, r.step - 1) } : r))}>Назад</button>
-                      <button className="btn btn-primary btn-sm" onClick={() => setRoadmaps(roadmaps.map(r => r.id === rm.id ? { ...r, step: Math.min(4, r.step + 1) } : r))}>Дальше</button>
-                      <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }} onClick={() => setRoadmaps(roadmaps.filter(r => r.id !== rm.id))}>Удалить</button>
-                    </div>
-                  </div>
-                );
-              })
-        ) : sub === 'prio' ? (
+        {sub === 'prio' ? (
           <>
             <div className="muted" style={{ fontSize: 12, color: 'var(--stone-2)', marginBottom: 10, padding: '0 4px' }}>
-              Удерживай номер слева и перетаскивай — приоритеты можно переставлять.
+              Нажми на вуз — раскроется его роадмап с этапами и чеклистами. Номер слева — перетаскивание.
             </div>
             <DraggablePriorityList
               ids={priorities}
               onReorder={setPriorities}
               openDetail={openDetail}
-              toggleSave={toggleSave}
-              savedIds={savedIds}
+              roadmaps={roadmaps}
+              setRoadmaps={setRoadmaps}
             />
           </>
         ) : savedIds.length === 0 ? (
@@ -604,8 +715,9 @@ const ProgramsTab = ({ savedIds, priorities, setPriorities, toggleSave, togglePr
 };
 
 // ===== Detail screen =====
-const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap, addRoadmap }) => {
+const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap, addRoadmap, openDetail }) => {
   const isInt = item.type === 'int';
+  const uniGrants = item.program ? grantsForUni(item) : [];
   const ai = useAI();
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnswer, setAiAnswer] = useState('');
@@ -672,6 +784,28 @@ const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, hasRoadmap,
           ))}
         </dl>
 
+        {uniGrants.length > 0 && (
+          <div className="card" style={{ marginTop: 14 }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', fontWeight: 500, marginBottom: 10 }}>
+              Гранты по этому вузу
+            </div>
+            {uniGrants.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => openDetail && openDetail({ ...g, type: 'grant' })}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', padding: '9px 0', borderTop: '1px solid var(--border)' }}
+              >
+                <FlagLogo flag={g.flag} color={g.color} size={34} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--stone-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.amount}</div>
+                </div>
+                <span className={`pill ${/полное/i.test(g.funding) ? 'pill-teal' : ''}`}>{g.funding}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <button
           className="btn btn-ghost btn-block"
           onClick={askProgram}
@@ -724,14 +858,24 @@ const initialEssayDrafts = () => {
   return map;
 };
 
-const Essay = ({ onBack }) => {
+const Essay = ({ onBack, priorities = [] }) => {
+  const [mode, setMode] = useState('mine'); // 'mine' | 'bank'
+  const [bankUniId, setBankUniId] = useState(null);
   const [activePromptId, setActivePromptId] = useState(ESSAY_PROMPTS[0].id);
   const activePrompt = ESSAY_PROMPTS.find(p => p.id === activePromptId);
 
   // Single source of truth: all drafts in one persisted object keyed by id (no save/load race).
   const [drafts, setDrafts] = usePersist('essayDrafts', initialEssayDrafts());
-  const text = drafts[activePromptId] != null ? drafts[activePromptId] : '';
-  const setText = (val) => setDrafts(d => ({ ...d, [activePromptId]: val }));
+
+  // Active context: starter prompt or bank university
+  const bankUni = bankUniId ? byId(bankUniId) : null;
+  const editingBank = mode === 'bank' && bankUni;
+  const draftKey = editingBank ? 'uni_' + bankUni.id : activePromptId;
+  const ctxUni = editingBank ? bankUni : byId(activePrompt.uniId);
+  const req = ctxUni && window.getEssayRequirements ? window.getEssayRequirements(ctxUni) : null;
+
+  const text = drafts[draftKey] != null ? drafts[draftKey] : '';
+  const setText = (val) => setDrafts(d => ({ ...d, [draftKey]: val }));
 
   const [feedback, setFeedback] = useState([
     { type: 'flow', txt: 'Сильное открывающее предложение с конкретной сценой. Это заметно выделяет вас среди абстрактных вступлений.' },
@@ -740,7 +884,9 @@ const Essay = ({ onBack }) => {
   ]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-  const target = 1000;
+  const target = req ? req.wordLimit : 1000;
+  const exportTitle = editingBank ? `${bankUni.name} — ${req ? req.type : 'Essay'}` : activePrompt.target;
+  const bankUnis = priorities.map(byId).filter(u => u && u.program);
   const ai = useAI();
   const toast = React.useContext(ToastCtx);
   const [aiLoading, setAiLoading] = useState(false);
@@ -750,8 +896,9 @@ const Essay = ({ onBack }) => {
     if (aiLoading) return;
     setAiLoading(true);
     try {
+      const taskText = req ? `${req.type} для ${ctxUni.name} (${ctxUni.program}). ${req.prompt}` : 'Admissions essay.';
       const reply = await ai(
-        `Ты редактор admissions essays. Дай 3 коротких практических замечания (по 1-2 предложения) к этому тексту, в JSON-массиве с ключами "type" (flow/concrete/gap/grammar) и "txt". Без markdown, только JSON.\n\nПромпт: ${activePrompt.prompt}\n\nТекст:\n${text}`,
+        `Ты редактор admissions essays. Дай 3 коротких практических замечания (по 1-2 предложения) к этому тексту с учётом требований конкретного вуза, в JSON-массиве с ключами "type" (flow/concrete/gap/grammar/fit) и "txt". Без markdown, только JSON.\n\nЗадание: ${taskText}\n\nТекст:\n${text}`,
         { temperature: 0.5 }
       );
       const arr = window.ai.extractJson(reply);
@@ -775,35 +922,105 @@ const Essay = ({ onBack }) => {
         </button>
       </div>
       <div className="tab-content">
-        <div className="card" style={{ marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Мои эссе</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {ESSAY_PROMPTS.map(p => {
-              const isActive = activePromptId === p.id;
-              const draftText = drafts[p.id] != null ? drafts[p.id] : '';
-              const wc = draftText.trim().split(/\s+/).filter(Boolean).length;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setActivePromptId(p.id)}
-                  style={{
-                    padding: 12, borderRadius: 10, textAlign: 'left', width: '100%',
-                    background: isActive ? 'rgba(15,110,86,0.07)' : 'transparent',
-                    border: '1px solid ' + (isActive ? 'var(--teal)' : 'var(--border)'),
-                  }}
-                >
-                  <div style={{ fontWeight: 500, fontSize: 13 }}>{p.target}</div>
-                  <div style={{ fontSize: 12, color: 'var(--stone-2)', marginTop: 2 }}>{wc} / 1000 слов</div>
-                </button>
-              );
-            })}
-          </div>
+        <div className="segmented">
+          <button className={`seg-btn ${mode === 'mine' ? 'active' : ''}`} onClick={() => setMode('mine')}>Мои эссе</button>
+          <button className={`seg-btn ${mode === 'bank' ? 'active' : ''}`} onClick={() => setMode('bank')}>Банк эссе</button>
         </div>
 
-        <div className="card" style={{ marginBottom: 12, background: 'var(--surface)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', marginBottom: 6, fontWeight: 500 }}>Задача</div>
-          <div style={{ fontSize: 13, lineHeight: 1.5 }}>{activePrompt.prompt}</div>
-        </div>
+        {mode === 'bank' && !bankUni ? (
+          bankUnis.length === 0 ? (
+            <div className="card card-flat" style={{ textAlign: 'center', color: 'var(--stone-2)' }}>
+              В приоритетах пока нет вузов. Добавь университеты в приоритеты — для каждого здесь появится эссе с требованиями программы.
+            </div>
+          ) : (
+            <>
+              <div className="muted" style={{ fontSize: 12, color: 'var(--stone-2)', marginBottom: 10, padding: '0 4px' }}>
+                Эссе под каждый вуз из приоритетов — с требованиями конкретной программы.
+              </div>
+              {bankUnis.map(u => {
+                const dk = 'uni_' + u.id;
+                const wc = (drafts[dk] || '').trim().split(/\s+/).filter(Boolean).length;
+                const lim = window.getEssayRequirements ? window.getEssayRequirements(u).wordLimit : 1000;
+                return (
+                  <div key={u.id} className="essay-item" onClick={() => setBankUniId(u.id)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <FlagLogo flag={u.flag} color={u.color} size={34} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="et">{u.name}</div>
+                        <div className="er">{u.program} · {wc} / {lim} слов</div>
+                      </div>
+                      <span className={deadlinePillCls(u.deadlineDays)}>{fmtDays(u.deadlineDays)}</span>
+                    </div>
+                    <div className="epb"><span style={{ width: Math.min(100, (wc / lim) * 100) + '%' }} /></div>
+                  </div>
+                );
+              })}
+            </>
+          )
+        ) : (
+        <>
+        {editingBank ? (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <button className="link" style={{ fontSize: 13, color: 'var(--teal-dark)', marginBottom: 8, background: 'none', border: 'none', padding: 0 }} onClick={() => setBankUniId(null)}>
+              ← Все вузы банка
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <FlagLogo flag={bankUni.flag} color={bankUni.color} size={34} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{bankUni.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--stone-2)' }}>{bankUni.program} · дедлайн {bankUni.deadline}</div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="card" style={{ marginBottom: 12 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Мои эссе</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ESSAY_PROMPTS.map(p => {
+                const isActive = activePromptId === p.id;
+                const draftText = drafts[p.id] != null ? drafts[p.id] : '';
+                const wc = draftText.trim().split(/\s+/).filter(Boolean).length;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setActivePromptId(p.id)}
+                    style={{
+                      padding: 12, borderRadius: 10, textAlign: 'left', width: '100%',
+                      background: isActive ? 'rgba(15,110,86,0.07)' : 'transparent',
+                      border: '1px solid ' + (isActive ? 'var(--teal)' : 'var(--border)'),
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, fontSize: 13 }}>{p.target}</div>
+                    <div style={{ fontSize: 12, color: 'var(--stone-2)', marginTop: 2 }}>{wc} слов</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {req && (
+          <div className="card" style={{ marginBottom: 12, background: 'var(--surface)' }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', marginBottom: 6, fontWeight: 500 }}>
+              Задача · {req.type} · до {req.wordLimit} слов
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.5 }}>{req.prompt}</div>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', margin: '12px 0 6px', fontWeight: 500 }}>
+              Требования {ctxUni.name}
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12.5, lineHeight: 1.55 }}>
+              {req.requirements.map((r, i) => <li key={i}>{r}</li>)}
+            </ul>
+            {req.tips && req.tips.length > 0 && (
+              <>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone-2)', margin: '12px 0 6px', fontWeight: 500 }}>Советы</div>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12.5, lineHeight: 1.55, color: 'var(--stone-2)' }}>
+                  {req.tips.map((t, i) => <li key={i}>{t}</li>)}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
@@ -849,17 +1066,19 @@ const Essay = ({ onBack }) => {
         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           <button
             className="btn btn-ghost btn-block"
-            onClick={() => window.downloadEssayDocx(activePrompt.target, text)}
+            onClick={() => window.downloadEssayDocx(exportTitle, text)}
           >
             {I.dl} DOCX
           </button>
           <button
             className="btn btn-ghost btn-block"
-            onClick={() => window.downloadEssayPdf(activePrompt.target, text)}
+            onClick={() => window.downloadEssayPdf(exportTitle, text)}
           >
             {I.dl} PDF
           </button>
         </div>
+        </>
+        )}
       </div>
     </>
   );
@@ -999,6 +1218,53 @@ const Resume = ({ onBack }) => {
     setEditing(null);
   };
 
+  // Item-level AI rewrite (stronger verbs, metrics)
+  const [improvingId, setImprovingId] = useState(null);
+  const improveWithAI = async (a) => {
+    if (improvingId) return;
+    setImprovingId(a.id);
+    try {
+      const reply = await ai(
+        `Ты эксперт по резюме для поступления в европейские университеты. Перепиши пункт CV сильнее: активные глаголы, конкретика, метрики (не выдумывая ложных цифр). Верни ТОЛЬКО JSON: {"title":"...","org":"...","desc":"1-2 предложения","skills":["3-4 английских тега"]}.\n\nПункт:\nНазвание: ${a.title}\nОрганизация: ${a.org}\nОписание: ${a.desc}\nНавыки: ${(a.skills || []).join(', ')}`,
+        { temperature: 0.5, maxTokens: 400 }
+      );
+      const obj = window.ai.extractJson(reply);
+      if (obj && obj.title) {
+        setAchievements(achievements.map(x => x.id === a.id ? { ...x, ...obj, skills: obj.skills || x.skills } : x));
+        toast && toast('Пункт улучшен с ИИ');
+      } else {
+        toast && toast('Не удалось разобрать ответ ИИ');
+      }
+    } catch (e) {
+      toast && toast('Ошибка ИИ: ' + (e.message || ''));
+    }
+    setImprovingId(null);
+  };
+
+  // Whole-CV feedback from a configurable reviewer persona
+  const [reviewerRole, setReviewerRole] = usePersist('cvReviewerRole', 'Адмиссионный офицер европейского университета');
+  const [cvFeedback, setCvFeedback] = useState(null);
+  const [fbLoading, setFbLoading] = useState(false);
+  const requestCvFeedback = async () => {
+    if (fbLoading) return;
+    if (!achievements.length) { toast && toast('Сначала добавьте достижения'); return; }
+    setFbLoading(true);
+    setCvFeedback(null);
+    try {
+      const cv = achievements.map((a, i) => `${i + 1}. ${a.title} — ${a.org}. ${a.desc} [${(a.skills || []).join(', ')}]`).join('\n');
+      const reply = await ai(
+        `Ты выступаешь в роли: «${reviewerRole}». Оцени CV кандидата с позиции этой роли. Дай 3-4 замечания в JSON-массиве объектов {"focus":"короткий ярлык (1-3 слова)","txt":"конкретное замечание 1-2 предложения"}. Сначала сильные стороны (1), затем что улучшить (2-3). Только JSON, без markdown.\n\nCV:\n${cv}`,
+        { temperature: 0.6, maxTokens: 700 }
+      );
+      const arr = window.ai.extractJson(reply);
+      if (Array.isArray(arr) && arr.length) setCvFeedback(arr.slice(0, 4));
+      else toast && toast('Не удалось разобрать ответ ИИ');
+    } catch (e) {
+      toast && toast('Ошибка ИИ: ' + (e.message || ''));
+    }
+    setFbLoading(false);
+  };
+
   return (
     <>
       <div className="scr-header">
@@ -1079,6 +1345,33 @@ const Resume = ({ onBack }) => {
             <button className="btn btn-blue btn-sm" onClick={() => setEditing({ title: '', org: '', desc: '', skills: '' })}>{I.plus} Добавить</button>
           </div>
 
+          <div className="card" style={{ marginBottom: 12, background: 'rgba(60,52,137,0.04)', border: '1px solid rgba(60,52,137,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              {I.sparkle}
+              <strong style={{ fontSize: 12, color: 'var(--purple-dark)' }}>Фидбек по всему CV</strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--stone-2)', marginBottom: 6 }}>Роль проверяющего</div>
+            <input
+              value={reviewerRole}
+              onChange={(e) => setReviewerRole(e.target.value)}
+              placeholder="Например: адмиссионный офицер LSE…"
+              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, background: 'white', outline: 'none' }}
+            />
+            <button className="btn btn-blue btn-block btn-sm" style={{ marginTop: 8 }} onClick={requestCvFeedback} disabled={fbLoading}>
+              {I.sparkle} {fbLoading ? 'Оцениваю…' : 'Оценить CV'}
+            </button>
+            {cvFeedback && (
+              <div style={{ marginTop: 10 }}>
+                {cvFeedback.map((f, i) => (
+                  <div key={i} style={{ fontSize: 13, lineHeight: 1.5, padding: '9px 0', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                    <span className="tag" style={{ fontSize: 10, marginRight: 8, textTransform: 'uppercase' }}>{f.focus}</span>
+                    {f.txt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {editing && (
             <div style={{ marginBottom: 14 }}>
               <AchievementForm initial={editing} onSave={saveManual} onCancel={() => setEditing(null)} />
@@ -1099,7 +1392,10 @@ const Resume = ({ onBack }) => {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 10 }}>
                 {(a.skills || []).map(s => <span key={s} className="tag">#{s}</span>)}
               </div>
-              <div style={{ display: 'flex', gap: 12, marginTop: 12, fontSize: 13 }}>
+              <div style={{ display: 'flex', gap: 12, marginTop: 12, fontSize: 13, flexWrap: 'wrap' }}>
+                <button onClick={() => improveWithAI(a)} disabled={improvingId === a.id} style={{ background: 'none', border: 'none', color: 'var(--purple-dark)', padding: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  {I.sparkle} {improvingId === a.id ? 'Улучшаю…' : 'Улучшить с ИИ'}
+                </button>
                 <button onClick={() => setEditing({ ...a })} style={{ background: 'none', border: 'none', color: 'var(--mid-blue-dark)', padding: 0, cursor: 'pointer' }}>Изменить</button>
                 <button onClick={() => setAchievements(achievements.filter(x => x.id !== a.id))} style={{ background: 'none', border: 'none', color: 'var(--red)', padding: 0, cursor: 'pointer' }}>Удалить</button>
               </div>
@@ -1221,6 +1517,32 @@ const ProfileTab = ({ name, setName, plan, setPlan, savedIds, priorities, roadma
           ))}
         </div>
 
+        <div className="section-h"><h2>Мы в соцсетях</h2></div>
+        <a className="soc-row" href="https://t.me/admitica" target="_blank" rel="noopener noreferrer">
+          <span className="si" style={{ background: '#2AABEE' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3c.3-1.2-.4-1.7-1.2-1.4L2.7 9.9c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 10.7-6.7c.5-.3 1-.2.6.2l-8.7 7.8-.3 4.8c.5 0 .7-.2 1-.5l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3-14.6z"/></svg>
+          </span>
+          Telegram
+        </a>
+        <a className="soc-row" href="https://instagram.com/admitica" target="_blank" rel="noopener noreferrer">
+          <span className="si" style={{ background: '#C13584' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+          </span>
+          Instagram
+        </a>
+        <a className="soc-row" href="https://facebook.com/admitica" target="_blank" rel="noopener noreferrer">
+          <span className="si" style={{ background: '#1877F2' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.6c0-.9.3-1.6 1.7-1.6H17V4.2c-.3 0-1.3-.2-2.4-.2-2.4 0-4.1 1.5-4.1 4.2v2.3H8v3h2.5V21h3z"/></svg>
+          </span>
+          Facebook
+        </a>
+        <a className="soc-row" href="https://tiktok.com/@admitica" target="_blank" rel="noopener noreferrer" style={{ marginBottom: 4 }}>
+          <span className="si" style={{ background: '#161616' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 3c.4 2 1.8 3.5 3.9 3.8v3c-1.5 0-2.9-.5-3.9-1.3v6.2c0 3.7-2.7 6.3-6.2 6.3-3.4 0-6-2.5-6-5.8 0-3.4 2.8-6 6.5-5.8v3.1c-.3-.1-.6-.1-.9-.1-1.6 0-2.8 1.2-2.8 2.8 0 1.6 1.2 2.8 2.7 2.8 1.7 0 3-1.3 3-3.2V3h3.7z"/></svg>
+          </span>
+          TikTok
+        </a>
+
         <div className="section-h"><h2>Данные</h2></div>
         <button className="more-item" style={{ width: '100%', textAlign: 'left', marginBottom: 8 }} onClick={onSwitchDesktop}>
           <div className="more-icon" style={{ background: 'var(--mid-blue-dark)' }}>{I.desktop}</div>
@@ -1291,9 +1613,12 @@ const App = () => {
   };
   const openDetail = (it) => { setDetail(it); };
   const addRoadmap = (it) => {
-    if (roadmaps.find(r => r.itemId === it.id)) { toast && toast('Уже в Roadmap'); return; }
-    setRoadmaps([...roadmaps, { id: 'rm' + Date.now(), itemId: it.id, step: 0 }]);
-    toast && toast('Добавлено в Roadmap');
+    // Roadmaps live inside Priorities now — make sure the item is there
+    if (!priorities.includes(it.id)) setPriorities([...priorities, it.id]);
+    if (!savedIds.includes(it.id)) setSavedIds([...savedIds, it.id]);
+    if (roadmaps.find(r => r.itemId === it.id)) { toast && toast('Уже в роадмапе'); return; }
+    setRoadmaps([...roadmaps, { id: 'rm' + Date.now(), itemId: it.id, step: 0, checks: {} }]);
+    toast && toast('Роадмап создан — смотри в Приоритетах');
   };
   const reset = () => {
     Object.keys(localStorage).filter(k => k.startsWith('admitica.')).forEach(k => localStorage.removeItem(k));
@@ -1321,8 +1646,9 @@ const App = () => {
             togglePrio={togglePrio}
             hasRoadmap={roadmaps.some(r => r.itemId === detail.id)}
             addRoadmap={addRoadmap}
+            openDetail={openDetail}
           />
-        ) : tool === 'essay' ? <Essay onBack={() => setTool(null)} />
+        ) : tool === 'essay' ? <Essay onBack={() => setTool(null)} priorities={priorities} />
         : tool === 'resume' ? <Resume onBack={() => setTool(null)} />
         : tab === 'home' ? <HomeTab name={name} savedIds={savedIds} priorities={priorities} roadmaps={roadmaps} openDetail={openDetail} setTab={setTab} openProfile={() => setTab('profile')} />
         : tab === 'find' ? <FindTab savedIds={savedIds} toggleSave={toggleSave} openDetail={openDetail} />

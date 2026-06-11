@@ -665,7 +665,7 @@ function updateChrome(){
     stepNum.textContent=('0'+step).slice(-2)+' / '+('0'+TOTAL_STEPS).slice(-2);
     [...stepSeg.children].forEach((i,idx)=>i.classList.toggle('on',idx<step));
     navbar.classList.add('show');
-    navbar.querySelector('[data-back]').style.display=current===2?'none':'';
+    navbar.querySelector('[data-back]').style.display='';
     navNext.textContent=(cfg[current]&&cfg[current].label)||'Дальше';
     refreshNext();
   }else{ mhead.classList.remove('show'); navbar.classList.remove('show'); }

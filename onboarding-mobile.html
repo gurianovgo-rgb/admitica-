@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Admitica — Онбординг</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <script>
 /* Device detection: route desktops to the desktop onboarding */
 (function() {
@@ -36,7 +36,7 @@ html,body{margin:0;padding:0;}
 body{
   font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   background:var(--bg); color:var(--stone); -webkit-font-smoothing:antialiased;
-  width:375px; margin:0 auto; min-height:100vh; position:relative; overflow-x:hidden;
+  width:100%; max-width:480px; margin:0 auto; min-height:100vh; min-height:100dvh; position:relative; overflow-x:hidden;
 }
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
 input,textarea{font-family:inherit;color:inherit;}
@@ -48,7 +48,7 @@ textarea{resize:none;}
 .blob-2{top:32%;left:-110px;width:240px;height:240px;background:radial-gradient(circle,rgba(83,74,183,0.12),transparent 70%);}
 
 /* fixed app header (screens 2-10) */
-#mhead{position:fixed;top:0;left:50%;transform:translateX(-50%);width:375px;z-index:60;
+#mhead{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:60;
   background:rgba(247,245,240,0.72);
   -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
   padding:14px 20px 16px;display:none;border-bottom:1px solid rgba(232,228,221,0.7);
@@ -113,7 +113,7 @@ textarea{resize:none;}
 .card-expand .ce-head{display:flex;align-items:center;gap:13px;min-height:64px;padding:11px 14px;}
 .card-expand .ce-body{max-height:0;overflow:hidden;transition:max-height .3s ease-in-out;}
 .card-expand.selected .ce-body{max-height:200px;}
-.card-expand textarea{width:100%;min-height:80px;border:none;background:transparent;outline:none;padding:0 16px 18px;font-size:15px;color:var(--stone);}
+.card-expand textarea{width:100%;min-height:80px;border:none;background:transparent;outline:none;padding:0 16px 18px;font-size:16px;color:var(--stone);}
 .card-expand textarea::placeholder{color:var(--muted);}
 
 .card-lg{min-height:92px;gap:16px;padding:0 18px;}
@@ -136,7 +136,7 @@ textarea{resize:none;}
 .grid-2 > *:nth-child(3n) .sketch{color:var(--midnight);}
 .grid-2 > *:nth-child(5n+1) .sketch{color:#E08A3C;}
 /* free-text reveal under a grid («other» option) */
-.other-text{width:100%;min-height:78px;border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;font-size:15px;outline:none;background:#fff;resize:none;font-family:inherit;color:var(--stone);}
+.other-text{width:100%;min-height:78px;border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;font-size:16px;outline:none;background:#fff;resize:none;font-family:inherit;color:var(--stone);}
 .other-text:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(29,158,117,0.15);}
 .other-text::placeholder{color:var(--muted);}
 
@@ -155,14 +155,14 @@ textarea{resize:none;}
 .btn-text:active{color:var(--midnight);}
 
 /* sticky bottom nav */
-#navbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:#fff;border-top:1px solid var(--border);padding:14px 20px 26px;z-index:100;display:none;gap:12px;align-items:center;box-shadow:0 -6px 24px rgba(12,68,124,0.07);}
+#navbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--border);padding:14px 20px calc(14px + env(safe-area-inset-bottom,12px));z-index:100;display:none;gap:12px;align-items:center;box-shadow:0 -6px 24px rgba(12,68,124,0.07);}
 #navbar.show{display:flex;}
 #navbar .btn-back{width:52px;flex-shrink:0;padding:0;font-size:22px;font-weight:600;border-radius:14px;}
 #navbar .btn-next{flex:1;}
 .skip-top{position:absolute;top:108px;right:20px;z-index:2;}
 
 /* Inputs */
-.input,.select-trigger{width:100%;height:52px;border:1.5px solid var(--border);border-radius:12px;padding:0 16px;font-size:15px;background:var(--white);transition:border-color .15s,box-shadow .15s;outline:none;}
+.input,.select-trigger{width:100%;height:52px;border:1.5px solid var(--border);border-radius:12px;padding:0 16px;font-size:16px;background:var(--white);transition:border-color .15s,box-shadow .15s;outline:none;}
 .input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(29,158,117,0.15);}
 .input::placeholder{color:var(--muted);}
 
@@ -275,7 +275,7 @@ textarea{resize:none;}
 .dots .dot{width:6px;height:6px;border-radius:3px;background:var(--border);transition:all .25s ease-in-out;}
 .dots .dot.active{background:var(--teal);width:18px;}
 
-#resultsBar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:#fff;border-top:1px solid var(--border);padding:14px 20px 28px;z-index:100;display:none;flex-direction:column;gap:10px;}
+#resultsBar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--border);padding:14px 20px calc(16px + env(safe-area-inset-bottom,12px));z-index:100;display:none;flex-direction:column;gap:10px;}
 #resultsBar.show{display:flex;}
 #resultsBar .rb-link{align-self:center;}
 

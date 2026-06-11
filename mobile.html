@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Admitica — Mobile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <script>
 (function() {
   var params = new URLSearchParams(location.search);
@@ -331,9 +331,12 @@ ul { padding: 0; margin: 0; list-style: none; }
   margin-bottom: 12px;
 }
 .search-row input {
-  flex: 1; border: none; outline: none; background: transparent;
-  font-size: 14px;
+  flex: 1; min-width: 0; border: none; outline: none; background: transparent;
+  font-size: 16px;
 }
+/* iOS zoom guard: any form control below 16px makes Safari zoom the page on focus,
+   shifting the whole layout. Inline styles included — hence !important. */
+.app-screen input, .app-screen textarea, .app-screen select { font-size: 16px !important; }
 
 /* ===== Program card ===== */
 .prog-card {

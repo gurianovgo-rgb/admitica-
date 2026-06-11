@@ -1067,9 +1067,9 @@ const Resume = ({ onBack }) => {
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder={typing ? 'AI печатает...' : 'Расскажите о достижении...'}
               disabled={typing}
-              style={{ flex: 1, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 14, background: 'white', outline: 'none' }}
+              style={{ flex: 1, minWidth: 0, padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', fontSize: 14, background: 'white', outline: 'none' }}
             />
-            <button className="btn btn-primary" onClick={send} disabled={!input.trim() || typing} style={{ padding: '10px 14px' }}>{I.send}</button>
+            <button className="btn btn-primary" onClick={send} disabled={!input.trim() || typing} style={{ padding: '10px 14px', flexShrink: 0 }}>{I.send}</button>
           </div>
         </>
       ) : (

@@ -156,7 +156,7 @@ const RoadmapView = ({ roadmaps, setRoadmaps, openDetail }) => {
               {ROADMAP_STAGES.map((s, i) => {
                 const cls = i < r.step ? 'done' : i === r.step ? 'in-progress' : '';
                 return (
-                  <div className={`rm-step ${cls}`} key={s.id} style={{ minWidth: 130 }}>
+                  <div className={`rm-step ${cls}`} key={s.id}>
                     <div className="rm-circle">
                       {i < r.step ? <Ico.check w={14} /> : i + 1}
                     </div>

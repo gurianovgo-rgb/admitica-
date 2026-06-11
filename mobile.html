@@ -274,7 +274,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   font-size: 14px; font-weight: 500; line-height: 1.3;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.row-meta { font-size: 12px; color: var(--stone-2); margin-top: 2px; }
+.row-meta { font-size: 12px; color: var(--stone-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-chev { color: var(--stone-3); flex-shrink: 0; }
 
 /* ===== Pill / Tag ===== */
@@ -299,7 +299,7 @@ ul { padding: 0; margin: 0; list-style: none; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 11px 18px; border-radius: 24px;
-  font-size: 14px; font-weight: 500;
+  font-size: 14px; font-weight: 500; min-width: 0;
   transition: opacity .15s;
 }
 .btn:active { opacity: 0.7; }
@@ -316,9 +316,9 @@ ul { padding: 0; margin: 0; list-style: none; }
   margin-bottom: 14px;
 }
 .seg-btn {
-  flex: 1; padding: 8px 8px; border-radius: 8px;
+  flex: 1; min-width: 0; padding: 8px 6px; border-radius: 8px;
   font-size: 12.5px; font-weight: 500; color: var(--stone-2);
-  text-align: center;
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .seg-btn.active { background: var(--white); color: var(--stone); box-shadow: var(--shadow); }
 
@@ -343,7 +343,7 @@ ul { padding: 0; margin: 0; list-style: none; }
 }
 .prog-card + .prog-card { margin-top: 10px; }
 .prog-head { display: flex; gap: 10px; align-items: flex-start; }
-.prog-name { font-size: 14.5px; font-weight: 500; line-height: 1.25; }
+.prog-name { font-size: 14.5px; font-weight: 500; line-height: 1.25; overflow-wrap: anywhere; word-break: break-word; }
 .prog-sub { font-size: 12.5px; color: var(--stone-2); margin-top: 2px; }
 .prog-heart {
   margin-left: auto; padding: 6px; border-radius: 8px;
@@ -355,7 +355,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   font-size: 11.5px; color: var(--stone-2);
   margin-top: 10px;
 }
-.prog-meta .mt { display: inline-flex; align-items: center; gap: 3px; }
+.prog-meta .mt { display: inline-flex; align-items: center; gap: 3px; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .prog-desc {
   font-size: 12.5px; color: var(--stone-2); line-height: 1.45;
   margin-top: 8px;
@@ -380,7 +380,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   font-size: 24px; font-weight: 500;
   margin-bottom: 12px;
 }
-.detail-name { font-size: 21px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.detail-name { font-size: 21px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word; }
 .detail-prog { font-size: 13.5px; color: var(--stone-2); margin-top: 6px; }
 .kv-list { display: flex; flex-direction: column; gap: 14px; }
 .kv-row {
@@ -390,8 +390,8 @@ ul { padding: 0; margin: 0; list-style: none; }
   border-bottom: 1px solid var(--border);
 }
 .kv-row:last-child { border-bottom: none; padding-bottom: 0; }
-.kv-row dt { color: var(--stone-2); flex-shrink: 0; }
-.kv-row dd { margin: 0; text-align: right; font-weight: 500; }
+.kv-row dt { color: var(--stone-2); flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.kv-row dd { margin: 0; text-align: right; font-weight: 500; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .back-btn {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 14px; color: var(--mid-blue-dark);
@@ -483,7 +483,7 @@ ul { padding: 0; margin: 0; list-style: none; }
 .chip {
   padding: 6px 12px; border-radius: 20px;
   font-size: 12.5px; background: var(--surface); color: var(--stone-2);
-  border: 1px solid transparent;
+  border: 1px solid transparent; max-width: 100%; overflow-wrap: anywhere;
 }
 .chip.active { background: var(--mid-blue-dark); color: white; }
 
@@ -514,7 +514,7 @@ ul { padding: 0; margin: 0; list-style: none; }
   font-size: 13px; box-shadow: 0 8px 20px rgba(0,0,0,0.18);
   z-index: 90; opacity: 0; pointer-events: none;
   transition: all .25s;
-  white-space: nowrap;
+  max-width: calc(100% - 32px); white-space: normal; text-align: center;
 }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 

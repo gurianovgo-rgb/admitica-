@@ -178,8 +178,8 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join('\n')}`
         </div>
       </div>
 
-      <div className="essay-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: 600 }}>
+      <div className="resume-grid">
+        <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: 'min(600px, 72vh)' }}>
           <div className="row-between" style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
             <div>
               <strong style={{ fontSize: 14 }}>AI-помощник</strong>

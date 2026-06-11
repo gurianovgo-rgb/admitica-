@@ -215,7 +215,7 @@ const Find = ({ saved, priorities, toggleSave, togglePrio, openDetail }) => {
         </div>
         <select
           className="ob-input"
-          style={{ width: 220, fontSize: 13, flexShrink: 0 }}
+          style={{ width: 'auto', minWidth: 150, maxWidth: 220, flexShrink: 1, fontSize: 13 }}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
@@ -239,7 +239,7 @@ const Find = ({ saved, priorities, toggleSave, togglePrio, openDetail }) => {
             Найдено: <b style={{ color: 'var(--stone)', fontWeight: 500 }}>{items.length}</b>
             {q && <> по запросу «{q}»</>}
           </div>
-          <div className="grid-2" style={{ gap: 16 }}>
+          <div className="find-cards">
             {items.map((u) => (
               <UniCard
                 key={u.id}

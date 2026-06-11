@@ -143,7 +143,7 @@ const FilterPanel = ({ kind, filters, setFilters, countries, fields }) => {
         <div className={`switch ${filters.onlyScholarship ? 'on' : ''}`} onClick={() => update('onlyScholarship', !filters.onlyScholarship)}></div>
       </div>
       <div className="filter-toggle">
-        <span>Скрыть закрытые</span>
+        <span>Скрыть с истёкшим дедлайном</span>
         <div className={`switch ${filters.hideExpired ? 'on' : ''}`} onClick={() => update('hideExpired', !filters.hideExpired)}></div>
       </div>
     </div>

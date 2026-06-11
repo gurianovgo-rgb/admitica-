@@ -48,20 +48,22 @@ const Streak = ({ streak }) => {
 };
 
 const GoalTracker = ({ roadmaps, savedIds, setTab }) => {
-  const STEPS = ['Изучить программу', 'Подготовить документы', 'Подать заявку', 'Дождаться ответа'];
-  const totalSteps = STEPS.length;
-
   // Find item by id across all data
   const findItem = (id) =>
     AdmiticaData.universities.find((u) => u.id === id) ||
     AdmiticaData.grants.find((g) => g.id === id) ||
     AdmiticaData.internships.find((i) => i.id === id);
 
-  const pct = roadmaps.length
-    ? Math.round((roadmaps.reduce((s, r) => s + (r.step / totalSteps), 0) / roadmaps.length) * 100)
+  // Average checklist-based progress across all roadmaps
+  const progs = roadmaps
+    .map((r) => ({ r, item: findItem(r.itemId) }))
+    .filter((x) => x.item)
+    .map((x) => ({ ...x, p: roadmapProgress(x.r, x.item) }));
+  const pct = progs.length
+    ? Math.round(progs.reduce((s, x) => s + x.p.pct, 0) / progs.length)
     : 0;
-  const currentRm = roadmaps[0];
-  const currentItem = currentRm ? findItem(currentRm.itemId) : null;
+  const current = progs[0] || null;
+  const currentItem = current ? current.item : null;
 
   return (
     <div
@@ -87,17 +89,20 @@ const GoalTracker = ({ roadmaps, savedIds, setTab }) => {
             <>
               Сейчас: <b style={{ fontWeight: 600 }}>{currentItem.name}</b>
               <br />
-              <span style={{ opacity: 0.8 }}>Шаг {Math.min(currentRm.step + 1, totalSteps)} из {totalSteps} — {STEPS[Math.min(currentRm.step, totalSteps - 1)]}</span>
+              <span style={{ opacity: 0.8 }}>
+                Этап {Math.min(current.p.done + 1, current.p.total)} из {current.p.total}
+                {current.p.currentName ? ` — ${current.p.currentName}` : ' — всё выполнено'}
+              </span>
             </>
           ) : (
             <>
-              Добавь программу в дорожную карту, чтобы начать отслеживать прогресс.
+              Добавь вуз в приоритеты, чтобы начать отслеживать прогресс по роадмапу.
             </>
           )}
         </div>
         <button
           className="btn btn-sm"
-          onClick={() => setTab(currentItem ? 'p_roadmap' : 'find')}
+          onClick={() => setTab(currentItem ? 'p_priority' : 'find')}
           style={{ background: 'rgba(255,255,255,0.18)', color: 'white', flexShrink: 0 }}
         >
           {currentItem ? 'Открыть' : 'Найти'}

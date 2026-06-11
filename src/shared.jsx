@@ -61,6 +61,32 @@ const Section = ({ title, action, children, className = '' }) => (
   </div>
 );
 
+// Roadmap progress derived from per-stage checklists (falls back to legacy step)
+const roadmapProgress = (rm, item) => {
+  const stages = (item && item.program && window.buildRoadmapStages) ? window.buildRoadmapStages(item) : null;
+  if (!stages) {
+    const total = 7;
+    const done = Math.min(rm.step || 0, total);
+    return { done, total, pct: Math.round((done / total) * 100), currentName: null, stages: null };
+  }
+  let checked = 0, boxes = 0, currentName = null, doneStages = 0;
+  stages.forEach((s) => {
+    const st = (rm.checks && rm.checks[s.id]) || [];
+    const full = s.checklist.length > 0 && s.checklist.every((_, i) => st[i]);
+    s.checklist.forEach((_, i) => { boxes++; if (st[i]) checked++; });
+    if (full) doneStages++;
+    else if (!currentName) currentName = s.name;
+  });
+  return {
+    done: doneStages,
+    total: stages.length,
+    pct: boxes ? Math.round((checked / boxes) * 100) : 0,
+    currentName,
+    stages,
+  };
+};
+
+window.roadmapProgress = roadmapProgress;
 window.fmtDays = fmtDays;
 window.deadlinePill = deadlinePill;
 window.usePersist = usePersist;

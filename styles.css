@@ -95,6 +95,21 @@ h1, h2, h3, h4 { font-weight: 500; margin: 0; line-height: 1.2; }
 .sb-sub-item:hover { background: rgba(44,44,42,0.04); color: var(--stone); }
 .sb-sub-item.active { color: var(--teal-dark); font-weight: 500; }
 
+/* ==== Sidebar socials ==== */
+.sb-socials { margin-top: auto; padding: 10px 4px 4px; border-top: 1px solid var(--border); }
+.sb-socials-h {
+  font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--stone-2); padding: 4px 8px 8px;
+}
+.sb-social {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px; border-radius: 8px;
+  font-size: 13px; color: var(--stone-2);
+  transition: background .12s, color .12s;
+}
+.sb-social:hover { background: rgba(44,44,42,0.05); color: var(--stone); }
+.sb-social .ico { width: 16px; display: inline-flex; flex-shrink: 0; }
+
 .sb-user {
   margin-top: 6px; padding: 10px 12px; border-radius: 10px;
   display: flex; align-items: center; gap: 10px; cursor: pointer;
@@ -413,6 +428,44 @@ select.filter-sel {
 .rm-name { font-size: 12px; text-align: center; font-weight: 500; line-height: 1.3; }
 .rm-date { font-size: 11px; text-align: center; color: var(--stone-2); margin-top: 2px; }
 
+/* ==== Inline roadmap inside Priorities ==== */
+.rm-expand { border-top: 1px solid var(--border); padding: 16px; background: rgba(44,44,42,0.015); }
+.rm-rail { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.rm-rail::-webkit-scrollbar { height: 5px; }
+.rm-rail::-webkit-scrollbar-thumb { background: var(--stone-3); border-radius: 3px; }
+.rm-chip {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 10px;
+  background: var(--white); border: 1.5px solid var(--border);
+  text-align: left; transition: border-color .15s, background .15s;
+}
+.rm-chip:hover { border-color: rgba(29,158,117,0.4); }
+.rm-chip.active { border-color: var(--teal); background: rgba(29,158,117,0.06); }
+.rm-chip.done .rm-chip-num { background: var(--teal); color: white; border-color: var(--teal); }
+.rm-chip-num {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 11px; font-weight: 500;
+  background: var(--surface); color: var(--stone-2); border: 1px solid var(--border);
+}
+.rm-chip-name { display: block; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.rm-chip-date { display: block; font-size: 10.5px; color: var(--stone-2); white-space: nowrap; }
+.rm-stage-detail {
+  margin-top: 12px; padding: 16px;
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+}
+.chk-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 8px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; line-height: 1.45; transition: background .1s;
+}
+.chk-row:hover { background: rgba(44,44,42,0.03); }
+.chk-row input { accent-color: var(--teal); margin-top: 2px; flex-shrink: 0; }
+.chk-row.checked span { color: var(--stone-2); text-decoration: line-through; }
+
+/* ==== Essay bank ==== */
+.bank-card { cursor: pointer; transition: box-shadow .15s, transform .1s; }
+.bank-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+
 /* ==== Settings drawer ==== */
 .drawer-backdrop {
   position: fixed; inset: 0; background: rgba(12,68,124,0.18);
@@ -598,6 +651,9 @@ select.filter-sel {
   .sb-user-name, .sb-user-plan, .sb-user-meta, .sb-user-cog { display: none; }
   .sb-user { justify-content: center; padding: 8px; gap: 0; }
   .sb-logo { justify-content: center; padding: 6px 0 22px; }
+  .sb-socials-h { display: none; }
+  .sb-social { justify-content: center; padding: 6px; }
+  .sb-social .lbl { display: none; }
   .main { padding: 24px 24px 60px; }
   .essay-grid, .resume-grid { grid-template-columns: 1fr; }
   .detail-grid { grid-template-columns: 1fr; }

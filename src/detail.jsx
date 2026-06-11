@@ -1,10 +1,32 @@
+// Grants relevant to a specific university: named awards > same country > EU-wide > field match
+const grantsForUni = (u) => {
+  const uniWord = (u.name || '').split(/\s+/).find((w) => w.length > 4) || u.name;
+  const generic = /все|любые|200\+|программ/i;
+  return AdmiticaData.grants
+    .map((g) => {
+      let score = 0;
+      if (g.name.toLowerCase().includes(uniWord.toLowerCase()) || (g.desc || '').toLowerCase().includes(uniWord.toLowerCase())) score += 5;
+      if (g.country === u.country) score += 3;
+      if (g.country === 'ЕС') score += 2;
+      if (generic.test(g.field || '')) score += 1;
+      else if (u.field && (g.field || '').toLowerCase().includes(u.field.split(/[,\s]/)[0].toLowerCase())) score += 2;
+      if (u.degree && (g.degree || '').toLowerCase().includes(u.degree.split(/[\s/]/)[0].toLowerCase())) score += 1;
+      return { g, score };
+    })
+    .filter((x) => x.score >= 2)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map((x) => x.g);
+};
+
 // Detail page for university / grant / internship
-const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, addRoadmap, hasRoadmap }) => {
+const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, addRoadmap, hasRoadmap, openDetail }) => {
   const it = item;
   const isUni = !!it.program;
   const isGrant = !!it.funding;
   const isIntern = !!it.role;
   const dp = deadlinePill(it.deadlineDays);
+  const uniGrants = isUni ? grantsForUni(it) : [];
 
   const reqs = isUni
     ? [
@@ -128,6 +150,29 @@ const Detail = ({ item, onBack, saved, prio, toggleSave, togglePrio, addRoadmap,
               ))}
             </dl>
           </div>
+
+          {uniGrants.length > 0 && (
+            <div className="card mb-24">
+              <h3 className="section-h">Гранты по этому вузу</h3>
+              <div className="col" style={{ gap: 4 }}>
+                {uniGrants.map((g) => (
+                  <div
+                    key={g.id}
+                    className="prio-item"
+                    style={{ padding: '10px 4px' }}
+                    onClick={() => openDetail && openDetail(g)}
+                  >
+                    <div className="u-logo" style={{ background: g.color, width: 34, height: 34, fontSize: 14 }}>{g.initial}</div>
+                    <div className="prio-info">
+                      <div className="prio-title" style={{ fontSize: 13 }}>{g.name}</div>
+                      <div className="prio-prog" style={{ fontSize: 12 }}>{g.amount}</div>
+                    </div>
+                    <Pill kind={/полное/i.test(g.funding) ? 'teal' : ''}>{g.funding}</Pill>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {it.site && (
             <div className="card mb-24">

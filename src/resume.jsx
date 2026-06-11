@@ -83,8 +83,67 @@ const Resume = () => {
   const [turnCount, setTurnCount] = useState(0); // user replies in current achievement story
   const [draft, setDraft] = useState(null); // suggested achievement awaiting approval
   const [editing, setEditing] = useState(null); // null | 'new' | achievement object
+  const [improvingId, setImprovingId] = useState(null); // id of achievement being AI-improved
+  const [reviewerRole, setReviewerRole] = usePersist('cvReviewerRole', 'Адмиссионный офицер европейского университета');
+  const [cvFeedback, setCvFeedback] = useState(null); // array of {focus, txt}
+  const [fbLoading, setFbLoading] = useState(false);
   const showToast = React.useContext(ToastCtx);
   const scrollRef = React.useRef(null);
+
+  // Item-level AI rewrite: stronger verbs, metrics, admissions-CV style
+  const improveWithAI = async (a) => {
+    if (improvingId) return;
+    setImprovingId(a.id);
+    try {
+      const reply = await window.ai.complete(
+        `Ты эксперт по резюме для поступления в европейские университеты. Перепиши пункт CV сильнее: активные глаголы, конкретика, метрики (если их нет — аккуратно усили формулировку, не выдумывая ложных цифр). Верни ТОЛЬКО JSON: {"title":"...","org":"...","desc":"1-2 предложения","skills":["3-4 английских тега"]}.
+
+Пункт:
+Название: ${a.title}
+Организация: ${a.org}
+Описание: ${a.desc}
+Навыки: ${(a.skills || []).join(', ')}`,
+        { temperature: 0.5, maxTokens: 400 }
+      );
+      const obj = window.ai.extractJson(reply);
+      if (obj && obj.title) {
+        setAchievements(achievements.map((x) => x.id === a.id ? { ...x, ...obj, skills: obj.skills || x.skills } : x));
+        showToast('Пункт улучшен с ИИ');
+      } else {
+        showToast('Не удалось разобрать ответ ИИ');
+      }
+    } catch (e) {
+      showToast('Ошибка ИИ: ' + (e.message || ''));
+    }
+    setImprovingId(null);
+  };
+
+  // Whole-CV feedback from a configurable reviewer persona
+  const requestCvFeedback = async () => {
+    if (fbLoading) return;
+    if (!achievements.length) { showToast('Сначала добавьте достижения'); return; }
+    setFbLoading(true);
+    setCvFeedback(null);
+    try {
+      const cv = achievements.map((a, i) => `${i + 1}. ${a.title} — ${a.org}. ${a.desc} [${(a.skills || []).join(', ')}]`).join('\n');
+      const reply = await window.ai.complete(
+        `Ты выступаешь в роли: «${reviewerRole}». Оцени CV кандидата с позиции этой роли. Дай 3-4 замечания в JSON-массиве объектов {"focus":"короткий ярлык (1-3 слова)","txt":"конкретное замечание 1-2 предложения"}. Сначала сильные стороны (1), затем что улучшить (2-3). Только JSON, без markdown.
+
+CV:
+${cv}`,
+        { temperature: 0.6, maxTokens: 700 }
+      );
+      const arr = window.ai.extractJson(reply);
+      if (Array.isArray(arr) && arr.length) {
+        setCvFeedback(arr.slice(0, 4));
+      } else {
+        showToast('Не удалось разобрать ответ ИИ');
+      }
+    } catch (e) {
+      showToast('Ошибка ИИ: ' + (e.message || ''));
+    }
+    setFbLoading(false);
+  };
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -225,6 +284,36 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join('\n')}`
         </div>
 
         <div>
+          <div className="card mb-16" style={{ background: 'rgba(60,52,137,0.04)', border: '1px solid rgba(60,52,137,0.2)' }}>
+            <div className="row gap-8" style={{ marginBottom: 10 }}>
+              <Ico.sparkle w={14} />
+              <strong style={{ fontSize: 13, color: 'var(--purple-dark)' }}>Фидбек по всему CV</strong>
+            </div>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Роль проверяющего</div>
+            <div className="row gap-8" style={{ alignItems: 'stretch' }}>
+              <input
+                className="ob-input"
+                style={{ flex: 1, minWidth: 0, fontSize: 13, padding: '9px 12px' }}
+                value={reviewerRole}
+                onChange={(e) => setReviewerRole(e.target.value)}
+                placeholder="Например: адмиссионный офицер LSE, HR из консалтинга…"
+              />
+              <button className="btn btn-blue btn-sm" onClick={requestCvFeedback} disabled={fbLoading} style={{ flexShrink: 0 }}>
+                <Ico.sparkle w={12} /> {fbLoading ? 'Оцениваю…' : 'Оценить'}
+              </button>
+            </div>
+            {cvFeedback && (
+              <div style={{ marginTop: 12 }}>
+                {cvFeedback.map((f, i) => (
+                  <div className="feedback-item" key={i}>
+                    <span className="ai-tag">{f.focus}</span>
+                    {f.txt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="row-between mb-16">
             <strong style={{ fontSize: 14 }}>Ваши достижения</strong>
             <div className="row gap-8">
@@ -257,7 +346,16 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join('\n')}`
                 <div className="ac-skills">
                   {(a.skills || []).map((s) => <span key={s} className="tag">#{s}</span>)}
                 </div>
-                <div className="row" style={{ marginTop: 10, gap: 6 }}>
+                <div className="row" style={{ marginTop: 10, gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    className="btn-link"
+                    style={{ color: 'var(--purple-dark)', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    onClick={() => improveWithAI(a)}
+                    disabled={improvingId === a.id}
+                  >
+                    <Ico.sparkle w={12} /> {improvingId === a.id ? 'Улучшаю…' : 'Улучшить с ИИ'}
+                  </button>
+                  <span style={{ color: 'var(--border)' }}>·</span>
                   <button className="btn-link" onClick={() => setEditing({ ...a })}>Изменить</button>
                   <span style={{ color: 'var(--border)' }}>·</span>
                   <button className="btn-link" onClick={() => setAchievements(achievements.filter((x) => x.id !== a.id))}>Удалить</button>

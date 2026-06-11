@@ -32,8 +32,11 @@ const App = () => {
     window.scrollTo(0, 0);
   };
   const addRoadmap = (it) => {
+    // Roadmaps live inside Priorities now — make sure the item is there
+    if (!priorities.includes(it.id)) setPriorities([...priorities, it.id]);
+    if (!savedIds.includes(it.id)) setSavedIds([...savedIds, it.id]);
     if (roadmaps.find((r) => r.itemId === it.id)) return;
-    setRoadmaps([...roadmaps, { id: 'rm' + Date.now(), itemId: it.id, step: 0 }]);
+    setRoadmaps([...roadmaps, { id: 'rm' + Date.now(), itemId: it.id, step: 0, checks: {} }]);
   };
   const reset = () => {
     Object.keys(localStorage).filter((k) => k.startsWith('admitica.')).forEach((k) => localStorage.removeItem(k));
@@ -82,6 +85,7 @@ const App = () => {
               togglePrio={togglePrio}
               addRoadmap={addRoadmap}
               hasRoadmap={roadmaps.some((r) => r.itemId === detail.id)}
+              openDetail={openDetail}
             />
           ) : (
             <>
@@ -117,7 +121,7 @@ const App = () => {
                   openDetail={openDetail}
                 />
               )}
-              {tab === 'essay' && <Essay />}
+              {tab === 'essay' && <Essay priorities={priorities} />}
               {tab === 'resume' && <Resume />}
             </>
           )}

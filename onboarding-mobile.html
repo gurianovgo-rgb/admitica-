@@ -547,15 +547,80 @@ textarea{resize:none;}
   <button class="btn-text rb-link">Пропустить</button>
 </div>
 
+<script src="data/programs.js"></script>
 <script>
-const programs=[
+/* Fallback if the dataset fails to load */
+const FALLBACK_PROGRAMS=[
   {university:"TU Berlin",country:"Германия",flag:"🇩🇪",program:"Computer Science M.Sc.",cost:"Бесплатно",deadline:"15 янв 2026",reason:"Бесплатное обучение для иностранцев, нужен B2"},
-  {university:"Vrije Universiteit Amsterdam",country:"Нидерланды",flag:"🇳🇱",program:"Business Analytics M.Sc.",cost:"$2 300 / год",deadline:"1 апр 2026",reason:"Holland Scholarship покрывает до €5 000"},
-  {university:"Charles University",country:"Чехия",flag:"🇨🇿",program:"Economics B.Sc.",cost:"$1 800 / год",deadline:"28 фев 2026",reason:"Принимают аттестаты СНГ напрямую"},
-  {university:"University of Helsinki",country:"Финляндия",flag:"🇫🇮",program:"Computer Science B.Sc.",cost:"$1 500 / год",deadline:"25 янв 2026",reason:"Стипендия до 100%, сильная IT-программа"},
-  {university:"Jagiellonian University",country:"Польша",flag:"🇵🇱",program:"International Business",cost:"$800 / год",deadline:"15 мар 2026",reason:"Самая доступная Европа, упрощённый процесс"},
-  {university:"University of Vienna",country:"Австрия",flag:"🇦🇹",program:"Economics & Finance B.Sc.",cost:"$1 400 / год",deadline:"5 мар 2026",reason:"Один из старейших вузов Европы, нострификация РФ"}
+  {university:"University of Helsinki",country:"Финляндия",flag:"🇫🇮",program:"Computer Science B.Sc.",cost:"$1 500 / год",deadline:"25 янв 2026",reason:"Стипендия до 100%, сильная IT-программа"}
 ];
+let programs = FALLBACK_PROGRAMS.slice();
+
+/* ===== Real matching against the Admitica dataset (data/programs.js) ===== */
+const FIELD_MAP={
+  it:['Computer Science'],
+  business:['Economics','Management','Business','Marketing'],
+  engineering:['Computer Science','Architecture','Mathematics'],
+  medicine:['Medicine','Biomedicine'],
+  design:['Design','Architecture'],
+  law:['Law','Political Science'],
+  humanities:['Social Sciences','European Studies','International Relations','Public Policy'],
+  science:['Mathematics','Biomedicine'],
+  education:['Social Sciences'],
+  psychology:['Psychology']
+};
+const COUNTRY_MAP={de:'Германия',it:'Италия',at:'Австрия',fr:'Франция',nl:'Нидерланды',ie:'Ирландия',es:'Испания',gb:'Великобритания'};
+function parseBudgetAmount(){
+  const s=(profile.budget||'').toString();
+  if(/∞|без огранич/i.test(s)) return Infinity;
+  if(/беспл/i.test(s)) return 0;
+  const d=s.replace(/[^0-9]/g,'');
+  return d?parseInt(d,10):Infinity;
+}
+function buildMatches(){
+  const data=window.AdmiticaData;
+  if(!data||!data.universities){ programs=FALLBACK_PROGRAMS.slice(); return; }
+  const selFields=(profile.fields||[]).filter(f=>FIELD_MAP[f]);
+  const wantFields=[].concat.apply([],selFields.map(f=>FIELD_MAP[f]));
+  const hasField=wantFields.length>0;
+  const selCountries=(profile.countries||[]);
+  const wantCountries=selCountries.filter(c=>COUNTRY_MAP[c]).map(c=>COUNTRY_MAP[c]);
+  const anyCountry=selCountries.indexOf('any')>-1||wantCountries.length===0;
+  const levels=(profile.level||[]);
+  const budget=parseBudgetAmount();
+  const scored=data.universities.map(function(u){
+    let score=0; const reasons=[];
+    const fieldHit=hasField&&wantFields.some(function(w){return (u.field||'').indexOf(w)>-1;});
+    if(fieldHit){score+=4;reasons.push('направление');}
+    const countryHit=!anyCountry&&wantCountries.indexOf(u.country)>-1;
+    if(countryHit){score+=3;reasons.push('страна');}
+    if(levels.length){
+      const dg=(u.degree||'');
+      const lvlHit=(levels.indexOf('bachelor')>-1&&/Бакалавр/i.test(dg))||(levels.indexOf('master')>-1&&/Магистрат/i.test(dg))||(levels.indexOf('phd')>-1&&/PhD|Доктор/i.test(dg));
+      if(lvlHit){score+=2;reasons.push('уровень');}
+    }
+    if(profile.grant&&u.scholarship){score+=1;reasons.push('есть стипендия');}
+    if(isFinite(budget)&&u.tuitionMax&&u.tuitionMax<=budget){score+=1;reasons.push('в бюджете');}
+    const hard=(!hasField||fieldHit)&&(anyCountry||countryHit);
+    return {u:u,score:score,reasons:reasons,hard:hard?1:0};
+  });
+  scored.sort(function(a,b){return (b.hard-a.hard)||(b.score-a.score);});
+  const top=scored.slice(0,6);
+  programs=top.map(function(it){
+    const u=it.u;
+    return {
+      id:u.id,
+      university:u.name,
+      country:u.country,
+      flag:u.flag,
+      program:u.program,
+      cost:u.tuition,
+      deadline:u.deadline,
+      reason:it.reasons.length?('совпадает '+it.reasons.join(', ')):((u.desc||'').slice(0,70))
+    };
+  });
+  if(!programs.length) programs=FALLBACK_PROGRAMS.slice();
+}
 
 const profile={name:"",saved:new Set()};
 let current=1;
@@ -863,6 +928,7 @@ document.querySelectorAll('[data-numeric]').forEach(inp=>{
 
 let aiTimers=[];
 function startAI(){
+  buildMatches();
   aiTimers.forEach(clearTimeout);aiTimers=[];
   const lines=[...document.querySelectorAll('#aiLines .ai-line')];
   lines.forEach(l=>l.classList.remove('show','hide'));
@@ -907,7 +973,8 @@ function renderCarousel(){
     save.addEventListener('click',e=>{
       e.stopPropagation();
       const on=save.classList.toggle('checked');
-      if(on){profile.saved.add(i);const r=save.getBoundingClientRect();burst(r.left+16,r.top+16,3);}else profile.saved.delete(i);
+      const pid=programs[i].id||('fb'+i);
+      if(on){profile.saved.add(pid);const r=save.getBoundingClientRect();burst(r.left+16,r.top+16,3);}else profile.saved.delete(pid);
       updateSavedCount();
     });
     car.appendChild(c);
@@ -951,14 +1018,18 @@ updateChrome();
 /* ===== Completion: persist profile and enter the app ===== */
 function finishOnboarding(){
   try{
+    var ids = [...profile.saved].filter(function(x){return /^[ugi]\d+$/.test(x);});
     var out = {};
-    for(var k in profile){
-      if(k==='saved') out.savedPrograms = [...profile.saved].map(function(i){return programs[i];});
-      else out[k] = profile[k];
-    }
+    for(var k in profile){ if(k!=='saved') out[k]=profile[k]; }
+    out.savedProgramIds = ids;
     localStorage.setItem('admitica.onboardingProfile', JSON.stringify(out));
     localStorage.setItem('admitica.onboarded', 'true');
     if(profile.name) localStorage.setItem('admitica.name', JSON.stringify(profile.name));
+    if(ids.length){
+      localStorage.setItem('admitica.savedIds', JSON.stringify(ids));
+      localStorage.setItem('admitica.priorities', JSON.stringify([]));
+      localStorage.setItem('admitica.roadmaps', JSON.stringify([]));
+    }
   }catch(e){}
   location.href = 'mobile.html?view=mobile';
 }

@@ -32,7 +32,7 @@
   --shadow-card:0 4px 24px rgba(12,68,124,0.08); --shadow-float:0 12px 40px rgba(12,68,124,0.14);
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%;overscroll-behavior-x:none;}
 body{
   font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   background:var(--bg); color:var(--stone); -webkit-font-smoothing:antialiased;
@@ -665,7 +665,7 @@ function updateChrome(){
     stepNum.textContent=('0'+step).slice(-2)+' / '+('0'+TOTAL_STEPS).slice(-2);
     [...stepSeg.children].forEach((i,idx)=>i.classList.toggle('on',idx<step));
     navbar.classList.add('show');
-    navbar.querySelector('[data-back]').style.visibility=current===2?'hidden':'visible';
+    navbar.querySelector('[data-back]').style.display=current===2?'none':'';
     navNext.textContent=(cfg[current]&&cfg[current].label)||'Дальше';
     refreshNext();
   }else{ mhead.classList.remove('show'); navbar.classList.remove('show'); }

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { motion, animate, useReducedMotion } from "framer-motion"
-import { ArrowRight, ArrowUpRight, Calendar, Check, Flame, RefreshCw, Sparkles } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Calendar, Check, Flame, Moon, RefreshCw, Sparkles, Sun } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -30,12 +30,6 @@ const QUOTES = [
   { t: "Качество — это не действие, это привычка.", a: "Аристотель" },
   { t: "Дисциплина — это мост между целями и достижениями.", a: "Джим Рон" },
 ]
-
-const ACCENTS = [
-  { id: "indigo", label: "Индиго", dot: "#7c6cf6" },
-  { id: "cyan", label: "Циан", dot: "#22d3ee" },
-  { id: "amber", label: "Янтарь", dot: "#f5a623" },
-] as const
 
 /* ---------- tiny count-up number ---------- */
 function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -86,13 +80,13 @@ function GoalCard({ roadmaps }: { roadmaps: RoadmapEntry[] }) {
       <div className="hero-glow pointer-events-none absolute inset-0 opacity-60" />
       <div className="relative flex h-full flex-col">
         <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-fg-muted uppercase">
-          <Sparkles className="size-3.5 text-accent" />
+          <Sparkles className="size-3.5 text-accent-text" />
           Цель — поступление
         </div>
         <div className="mt-4 text-6xl font-bold tracking-tight">
           <CountUp to={pct} suffix="%" />
         </div>
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/8">
+        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-fg/8">
           <motion.div
             className="h-full rounded-full bg-accent"
             initial={{ width: 0 }}
@@ -179,7 +173,7 @@ function QuoteCard() {
       >
         <RefreshCw />
       </Button>
-      <div className="text-xs font-semibold tracking-widest text-accent uppercase">Цитата дня</div>
+      <div className="text-xs font-semibold tracking-widest text-accent-text uppercase">Цитата дня</div>
       <motion.blockquote
         key={i}
         initial={{ opacity: 0, y: 8 }}
@@ -208,7 +202,7 @@ function ListRow({
       variants={fadeUp}
       whileHover={{ x: 3 }}
       transition={{ duration: 0.2, ease: EASE }}
-      className="group flex cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-white/4"
+      className="group flex cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-fg/4"
     >
       {index !== undefined && (
         <div
@@ -222,7 +216,7 @@ function ListRow({
       )}
       <div
         className="grid size-9 shrink-0 place-items-center rounded-xl text-sm font-semibold text-white"
-        style={{ background: (item as { color?: string }).color ?? "var(--accent)" }}
+        style={{ background: (item as { color?: string }).color ?? "#0f766e" /* white label needs a dark fill in both themes */ }}
       >
         {(item as { initial?: string }).initial ?? item.name[0]}
       </div>
@@ -247,10 +241,11 @@ function DeadlineBadge({ days }: { days: number }) {
 
 /* ---------- page ---------- */
 export default function App() {
-  const [accent, setAccent] = useState<(typeof ACCENTS)[number]["id"]>("indigo")
+  // Theme lives in a NEW key (admitica.theme) — existing keys untouched.
+  const [theme, setTheme] = usePersist<"dark" | "light">("theme", "dark")
   useEffect(() => {
-    document.documentElement.dataset.accent = accent
-  }, [accent])
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   // Same storage keys and defaults as the legacy desktop app — DO NOT change.
   const name = readPersist<string>("name", "друг")
@@ -277,21 +272,15 @@ export default function App() {
           <Badge variant="outline" className="max-sm:hidden">
             v2 preview · Vite
           </Badge>
-          <div className="ml-auto flex items-center gap-1 rounded-xl border border-border bg-card p-1">
-            {ACCENTS.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => setAccent(a.id)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors duration-200",
-                  accent === a.id ? "bg-white/8 text-fg" : "text-fg-muted hover:text-fg",
-                )}
-              >
-                <span className="size-2.5 rounded-full" style={{ background: a.dot }} />
-                <span className="max-sm:hidden">{a.label}</span>
-              </button>
-            ))}
-          </div>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            className="ml-auto"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+          >
+            {theme === "dark" ? <Sun /> : <Moon />}
+          </Button>
           <Button size="sm" className="max-sm:hidden">
             Подобрать программу <ArrowRight />
           </Button>
@@ -304,7 +293,7 @@ export default function App() {
           <div className="text-sm text-fg-muted capitalize">{todayName()}</div>
           <h1 className="mt-2 text-4xl font-bold tracking-tight text-balance sm:text-5xl">
             {greetByHour()}, {name}
-            <span className="text-accent">.</span>
+            <span className="text-accent-text">.</span>
           </h1>
           <p className="mt-3 max-w-xl text-fg-muted">
             Твой путь к поступлению в Европу — программы, дедлайны и прогресс в одном месте.
@@ -401,7 +390,7 @@ export default function App() {
                   <div className="mt-2 text-xl font-bold">{c.lead}</div>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-fg-muted">{c.body}</p>
                   {c.bar !== undefined && (
-                    <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
+                    <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-fg/8">
                       <motion.div
                         className="h-full rounded-full bg-accent"
                         initial={{ width: 0 }}

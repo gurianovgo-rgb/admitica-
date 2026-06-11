@@ -2,9 +2,15 @@
 @import "tw-animate-css";
 
 /* ============================================================
-   Admitica design tokens — dark theme, 21st.dev-grade surface.
-   Accent is themeable via [data-accent] on <html>:
-     indigo (default) · cyan · amber
+   Admitica design tokens — teal accent.
+   Dark theme is the default; light theme is activated with
+   [data-theme="light"] on <html>.
+
+   Color usage rules:
+   - teal TEXT/icons on page background  → --color-accent-text
+   - teal FILLS (buttons, active pills)  → --color-accent,
+     with --color-accent-fg for the text on top (semibold labels)
+   - glows/shadows                       → --color-accent-glow
    ============================================================ */
 
 @theme {
@@ -23,53 +29,67 @@
   --duration-base: 250ms;
   --duration-slow: 300ms;
 
-  /* Dark surface scale */
-  --color-bg: #09090b;
-  --color-surface: #101014;
-  --color-card: #141419;
-  --color-card-2: #1a1a21;
+  /* Dark surface scale (default theme) */
+  --color-bg: #0a0c0c;
+  --color-surface: #101414;
+  --color-card: #151a1a;
+  --color-card-2: #1b2121;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-strong: rgba(255, 255, 255, 0.14);
 
   /* Text scale */
-  --color-fg: #fafafa;
-  --color-fg-muted: #a1a1aa;
-  --color-fg-faint: #63636b;
+  --color-fg: #f4f7f6;
+  --color-fg-muted: #99a3a1;
+  --color-fg-faint: #5e6766;
 
-  /* Accent (defaults = deep violet-indigo; overridden by [data-accent]) */
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-fg: var(--accent-fg);
-  --color-accent-glow: var(--accent-glow);
+  /* Teal accent — bright on dark surfaces */
+  --color-accent: #2dd4bf;
+  --color-accent-soft: rgba(45, 212, 191, 0.12);
+  --color-accent-fg: #04201d;
+  --color-accent-text: #2dd4bf;
+  --color-accent-glow: rgba(45, 212, 191, 0.3);
 
   /* Semantic */
-  --color-positive: #34d399;
+  --color-positive: #4ade80;
   --color-warning: #fbbf24;
   --color-danger: #f87171;
+  /* text on a danger fill — dark danger is a light red, so white text fails contrast */
+  --color-danger-fg: #2a0a0a;
 }
 
-/* ---- Accent variants (design decision pending — switchable live) ---- */
-:root,
-[data-accent="indigo"] {
-  --accent: #7c6cf6;            /* deep violet-indigo */
-  --accent-soft: rgba(124, 108, 246, 0.14);
-  --accent-fg: #ffffff;
-  --accent-glow: rgba(124, 108, 246, 0.35);
-}
-[data-accent="cyan"] {
-  --accent: #22d3ee;            /* electric cyan */
-  --accent-soft: rgba(34, 211, 238, 0.12);
-  --accent-fg: #06222a;
-  --accent-glow: rgba(34, 211, 238, 0.3);
-}
-[data-accent="amber"] {
-  --accent: #f5a623;            /* warm amber */
-  --accent-soft: rgba(245, 166, 35, 0.13);
-  --accent-fg: #241500;
-  --accent-glow: rgba(245, 166, 35, 0.3);
+/* ---- Light theme: darker teal for readability on light surfaces ---- */
+[data-theme="light"] {
+  --color-bg: #f3f7f6;
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-card-2: #e9f1ef;
+  --color-border: rgba(12, 40, 36, 0.1);
+  --color-border-strong: rgba(12, 40, 36, 0.18);
+
+  --color-fg: #0d1a18;
+  --color-fg-muted: #4c5a58;
+  --color-fg-faint: #7a8987;
+
+  --color-accent: #0d9488;
+  --color-accent-soft: rgba(13, 148, 136, 0.12);
+  --color-accent-fg: #ffffff;
+  --color-accent-text: #0f766e;
+  --color-accent-glow: rgba(13, 148, 136, 0.18);
+
+  --color-positive: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-danger-fg: #ffffff;
 }
 
 /* ---- Base ---- */
+html {
+  color-scheme: dark;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
 html, body {
   background: var(--color-bg);
   color: var(--color-fg);
@@ -78,13 +98,25 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-::selection { background: var(--accent); color: var(--accent-fg); }
+::selection { background: var(--color-accent); color: var(--color-accent-fg); }
 
 /* Soft ambient glow behind the hero */
 .hero-glow {
   background:
-    radial-gradient(600px 320px at 18% 0%, var(--accent-glow), transparent 70%),
+    radial-gradient(600px 320px at 18% 0%, var(--color-accent-glow), transparent 70%),
     radial-gradient(480px 260px at 85% 12%, rgba(255, 255, 255, 0.05), transparent 70%);
+}
+/* On light surfaces the white radial is invisible — keep only the (already
+   muted) teal glow so the hero stays clean. */
+[data-theme="light"] .hero-glow {
+  background: radial-gradient(600px 320px at 18% 0%, var(--color-accent-glow), transparent 70%);
+}
+
+/* White cards on a light page need a soft shadow to keep depth */
+[data-theme="light"] [data-slot="card"] {
+  box-shadow:
+    0 1px 2px rgba(13, 26, 24, 0.04),
+    0 12px 32px -20px rgba(13, 26, 24, 0.18);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -67,11 +67,11 @@ const Sidebar = ({ tab, setTab, name, plan, slideIn, onSettings }) => {
       </nav>
       <div className="sb-user" onClick={onSettings}>
         <div className="sb-avatar">{initial}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="sb-user-meta" style={{ flex: 1, minWidth: 0 }}>
           <div className="sb-user-name">{name || 'Пользователь'}</div>
           <div className="sb-user-plan">{plan}</div>
         </div>
-        <Ico.cog w={16} />
+        <span className="sb-user-cog"><Ico.cog w={16} /></span>
       </div>
     </aside>
   );

@@ -8,16 +8,27 @@
 (function() {
   var params = new URLSearchParams(location.search);
   var forced = params.get('view');
-  if (forced === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); return; }
+  // Onboarding gate: redirect to onboarding unless completed (or explicitly skipped)
+  function gateOnboarding() {
+    var onboarded = false;
+    try { onboarded = localStorage.getItem('admitica.onboarded') === 'true'; } catch (e) {}
+    var force = params.get('onboarding') === 'force';
+    var skip = params.get('onboarding') === 'skip';
+    if ((!onboarded || force) && !skip) { location.replace('onboarding.html'); return true; }
+    return false;
+  }
+  if (forced === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); gateOnboarding(); return; }
   if (forced === 'mobile') { sessionStorage.setItem('admitica.view', 'mobile'); location.replace('mobile.html' + location.search); return; }
-  if (sessionStorage.getItem('admitica.view') === 'desktop') return;
+  if (sessionStorage.getItem('admitica.view') === 'desktop') { gateOnboarding(); return; }
   var ua = navigator.userAgent || '';
   var isPhoneUA = /Mobi|Android|iPhone|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile/i.test(ua);
   var isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
   var isTouchOnly = (navigator.maxTouchPoints > 0) && window.matchMedia('(pointer: coarse)').matches;
   if (isPhoneUA || (isSmallScreen && isTouchOnly)) {
     location.replace('mobile.html');
+    return;
   }
+  gateOnboarding();
 })();
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600&display=swap" rel="stylesheet">

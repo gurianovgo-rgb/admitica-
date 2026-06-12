@@ -103,8 +103,10 @@ export default function App() {
           onSettings={() => setSettingsOpen(true)}
           animateIn={justOnboarded}
         />
-        <main className="lg:pl-64">
-          <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        {/* isolate: page-level z-indexes (dragged cards) stay under the fixed chrome bars */}
+        <main className="isolate lg:pl-64">
+          {/* bottom padding below lg clears the fixed tab bar */}
+          <div className="mx-auto w-full max-w-5xl px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:px-10 lg:py-10">
             {detail ? (
               <Detail
                 item={detail}

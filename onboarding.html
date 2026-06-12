@@ -5,20 +5,10 @@
 <title>Admitica — Онбординг</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-/* Device detection: route phones to the mobile onboarding */
+/* Mobile onboarding was removed with the legacy mobile build — all devices use this page */
 (function() {
   var params = new URLSearchParams(location.search);
-  var forced = params.get('view');
-  if (forced === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); return; }
-  if (forced === 'mobile') { sessionStorage.setItem('admitica.view', 'mobile'); location.replace('onboarding-mobile.html' + location.search); return; }
-  if (sessionStorage.getItem('admitica.view') === 'desktop') return;
-  var ua = navigator.userAgent || '';
-  var isPhoneUA = /Mobi|Android|iPhone|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile/i.test(ua);
-  var isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
-  var isTouchOnly = (navigator.maxTouchPoints > 0) && window.matchMedia('(pointer: coarse)').matches;
-  if (isPhoneUA || (isSmallScreen && isTouchOnly)) {
-    location.replace('onboarding-mobile.html');
-  }
+  if (params.get('view') === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); }
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

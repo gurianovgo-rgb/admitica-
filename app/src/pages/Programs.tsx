@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react"
 
+import { ProgramLogo } from "@/components/ProgramLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -117,12 +118,7 @@ function SavedCard({
     <motion.div variants={fadeUp} whileHover={{ y: -3 }} transition={{ duration: 0.2, ease: EASE }} className="h-full">
       <Card className="flex h-full flex-col gap-4 p-5 sm:p-6">
         <div className="flex items-start gap-3">
-          <div
-            className="grid size-10 shrink-0 place-items-center rounded-xl text-sm font-semibold text-white"
-            style={{ background: u.color ?? "#0f766e" }}
-          >
-            {u.initial ?? u.name[0]}
-          </div>
+          <ProgramLogo item={u} className="size-10 rounded-xl text-sm font-semibold" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-semibold">{u.name}</div>
             <div className="truncate text-xs text-fg-muted">{sub}</div>
@@ -407,12 +403,7 @@ function PriorityRow({
             {index + 1}
           </div>
 
-          <div
-            className="grid size-9.5 shrink-0 place-items-center rounded-xl text-[15px] font-semibold text-white"
-            style={{ background: p.color ?? "#0f766e" }}
-          >
-            {p.initial ?? p.name[0]}
-          </div>
+          <ProgramLogo item={p} className="size-9.5 rounded-xl text-[15px] font-semibold" />
 
           <div className="min-w-0 flex-1 basis-40">
             <div className="truncate text-sm font-medium">{p.name}</div>

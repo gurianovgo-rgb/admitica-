@@ -62,9 +62,10 @@ jobs:
           if [ "${{ inputs.mode }}" = "prod" ]; then
             cp -r app/dist/* site/
           else
-            # Legacy site verbatim at the root — live URLs stay identical
-            cp index.html mobile.html onboarding.html onboarding-mobile.html styles.css config.example.js site/ 2>/dev/null || true
-            cp -r data src src-mobile site/
+            # Legacy desktop site verbatim at the root — live URLs stay identical.
+            # (Legacy mobile build was removed — the new responsive app serves phones.)
+            cp index.html onboarding.html styles.css config.example.js site/ 2>/dev/null || true
+            cp -r data src site/
             # New app next to it
             mkdir -p site/next
             cp -r app/dist/* site/next/

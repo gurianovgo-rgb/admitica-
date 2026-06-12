@@ -17,15 +17,18 @@
     if ((!onboarded || force) && !skip) { location.replace('onboarding.html'); return true; }
     return false;
   }
+  // The legacy mobile.html build was removed. While this legacy page is still
+  // the site root (preview deploys), phones go to the new responsive app,
+  // which the deploy workflow publishes next to it at next/.
+  // A prod-mode deploy replaces this file with the new app entirely.
   if (forced === 'desktop') { sessionStorage.setItem('admitica.view', 'desktop'); gateOnboarding(); return; }
-  if (forced === 'mobile') { sessionStorage.setItem('admitica.view', 'mobile'); location.replace('mobile.html' + location.search); return; }
   if (sessionStorage.getItem('admitica.view') === 'desktop') { gateOnboarding(); return; }
   var ua = navigator.userAgent || '';
   var isPhoneUA = /Mobi|Android|iPhone|iPod|Windows Phone|BlackBerry|Opera Mini|IEMobile/i.test(ua);
   var isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
   var isTouchOnly = (navigator.maxTouchPoints > 0) && window.matchMedia('(pointer: coarse)').matches;
   if (isPhoneUA || (isSmallScreen && isTouchOnly)) {
-    location.replace('mobile.html');
+    location.replace('next/');
     return;
   }
   gateOnboarding();

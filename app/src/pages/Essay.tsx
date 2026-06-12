@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, Bold, Download, Italic, List, Loader2, Sparkles, Star } from "lucide-react"
 
+import { ProgramLogo } from "@/components/ProgramLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -96,12 +97,7 @@ function DeadlineBadge({ days }: { days: number }) {
 
 function UniTile({ uni }: { uni: University }) {
   return (
-    <div
-      className="grid size-10 shrink-0 place-items-center rounded-xl text-base font-semibold text-white"
-      style={{ background: uni.color || "#0f766e" /* white label needs a dark fill in both themes */ }}
-    >
-      {uni.initial}
-    </div>
+    <ProgramLogo item={uni} className="size-10 rounded-xl text-base font-semibold" />
   )
 }
 

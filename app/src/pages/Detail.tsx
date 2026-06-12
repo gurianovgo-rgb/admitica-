@@ -11,6 +11,7 @@ import {
   Star,
 } from "lucide-react"
 
+import { ProgramLogo } from "@/components/ProgramLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -178,12 +179,7 @@ export default function Detail({
 
       {/* head */}
       <motion.div variants={fadeUp} className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-6">
-        <div
-          className="grid size-16 shrink-0 place-items-center rounded-2xl text-2xl font-semibold text-white sm:size-18"
-          style={{ background: it.color ?? "#0f766e" }}
-        >
-          {it.initial}
-        </div>
+        <ProgramLogo item={it} className="size-16 rounded-2xl text-2xl font-semibold sm:size-18" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">{it.name}</h1>
@@ -278,12 +274,7 @@ export default function Detail({
                       className="group flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2.5 transition-colors duration-200 hover:bg-fg/5"
                       onClick={() => openDetail(g)}
                     >
-                      <div
-                        className="grid size-9 shrink-0 place-items-center rounded-xl text-sm font-semibold text-white"
-                        style={{ background: g.color ?? "#0f766e" }}
-                      >
-                        {g.initial}
-                      </div>
+                      <ProgramLogo item={g} className="size-9 rounded-xl text-sm font-semibold" />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[13px] font-medium">{g.name}</div>
                         <div className="truncate text-xs text-fg-muted">{g.amount}</div>

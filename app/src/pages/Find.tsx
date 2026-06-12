@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { ProgramLogo } from "@/components/ProgramLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -102,12 +103,7 @@ function UniCard({
       >
         {/* head */}
         <div className="flex items-start gap-3">
-          <div
-            className="grid size-11 shrink-0 place-items-center rounded-xl text-lg font-medium text-white"
-            style={{ background: u.color ?? "#0f766e" /* white label needs a dark fill in both themes */ }}
-          >
-            {u.initial}
-          </div>
+          <ProgramLogo item={u} className="size-11 rounded-xl text-lg font-medium" />
           <div className="min-w-0 flex-1">
             <div className="text-[15px] leading-snug font-medium break-words">{u.name}</div>
             <div className="mt-0.5 text-[13px] break-words text-fg-muted">

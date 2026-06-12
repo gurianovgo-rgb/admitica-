@@ -1,17 +1,15 @@
 import { useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   Bookmark,
   Briefcase,
   ChevronDown,
   Home,
-  Menu,
   Moon,
   PenLine,
   Search,
   Settings,
   Sun,
-  X,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -78,6 +76,16 @@ const NAV_ITEMS = [
   { id: "resume" as Tab, label: "Сборка резюме", icon: Briefcase },
 ]
 
+/* Bottom tab bar (narrow screens) — mirrors the legacy mobile Tabbar,
+   extended with Эссе/Резюме for parity with the desktop sidebar. */
+const MOBILE_TABS: { id: Tab; label: string; icon: typeof Home; activeFor: (t: Tab) => boolean }[] = [
+  { id: "home", label: "Главная", icon: Home, activeFor: (t) => t === "home" },
+  { id: "find", label: "Найти", icon: Search, activeFor: (t) => t === "find" },
+  { id: "p_saved", label: "Мои", icon: Bookmark, activeFor: (t) => t.startsWith("p_") },
+  { id: "essay", label: "Эссе", icon: PenLine, activeFor: (t) => t === "essay" },
+  { id: "resume", label: "Резюме", icon: Briefcase, activeFor: (t) => t === "resume" },
+]
+
 export interface SidebarProps {
   tab: Tab
   setTab: (t: Tab) => void
@@ -104,24 +112,9 @@ function ThemeToggle({ theme, onToggle, className }: { theme: "dark" | "light"; 
   )
 }
 
-function NavContent({
-  tab,
-  setTab,
-  name,
-  plan,
-  theme,
-  onToggleTheme,
-  onSettings,
-  onNavigate,
-  hideThemeToggle,
-}: SidebarProps & { onNavigate?: () => void; hideThemeToggle?: boolean }) {
+function NavContent({ tab, setTab, name, plan, theme, onToggleTheme, onSettings }: SidebarProps) {
   const [progExpanded, setProgExpanded] = useState(tab.startsWith("p_"))
   const initial = (name || "У").charAt(0).toUpperCase()
-
-  const go = (t: Tab) => {
-    setTab(t)
-    onNavigate?.()
-  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -131,7 +124,7 @@ function NavContent({
         <span className="text-lg font-bold tracking-tight">
           Admitica<span className="text-accent-text">.</span>
         </span>
-        {!hideThemeToggle && <ThemeToggle theme={theme} onToggle={onToggleTheme} className="ml-auto" />}
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} className="ml-auto" />
       </div>
 
       {/* nav */}
@@ -149,9 +142,9 @@ function NavContent({
                 onClick={() => {
                   if (it.sub) {
                     setProgExpanded(!progExpanded)
-                    if (!isActive) go(it.sub[0].id)
+                    if (!isActive) setTab(it.sub[0].id)
                   } else {
-                    go(it.id as Tab)
+                    setTab(it.id as Tab)
                   }
                 }}
               >
@@ -170,7 +163,7 @@ function NavContent({
                         "rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
                         tab === s.id ? "text-accent-text" : "text-fg-muted hover:text-fg",
                       )}
-                      onClick={() => go(s.id)}
+                      onClick={() => setTab(s.id)}
                     >
                       {s.label}
                     </button>
@@ -204,10 +197,7 @@ function NavContent({
       {/* user → settings */}
       <button
         className="mx-3 mb-4 flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors duration-200 outline-none hover:bg-fg/5 focus-visible:ring-2 focus-visible:ring-accent/60"
-        onClick={() => {
-          onSettings()
-          onNavigate?.()
-        }}
+        onClick={onSettings}
       >
         <div className="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-fg">
           {initial}
@@ -223,13 +213,14 @@ function NavContent({
 }
 
 export function Sidebar(props: SidebarProps) {
-  const [open, setOpen] = useState(false)
+  const { tab, setTab, name, theme, onToggleTheme, onSettings, animateIn } = props
+  const initial = (name || "У").charAt(0).toUpperCase()
 
   return (
     <>
       {/* Desktop rail */}
       <motion.aside
-        initial={props.animateIn ? { x: -32, opacity: 0 } : false}
+        initial={animateIn ? { x: -32, opacity: 0 } : false}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.45, ease: EASE }}
         className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-surface lg:block"
@@ -237,50 +228,49 @@ export function Sidebar(props: SidebarProps) {
         <NavContent {...props} />
       </motion.aside>
 
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-bg/80 px-3 backdrop-blur-xl lg:hidden">
-        <Button variant="ghost" size="icon-sm" onClick={() => setOpen(true)} aria-label="Открыть меню">
-          <Menu />
-        </Button>
+      {/* Mobile top bar: logo · theme · profile (настройки) */}
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-bg/80 px-4 backdrop-blur-xl lg:hidden">
         <span className="text-base font-bold tracking-tight">
           Admitica<span className="text-accent-text">.</span>
         </span>
-        <ThemeToggle theme={props.theme} onToggle={props.onToggleTheme} className="ml-auto" />
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} className="ml-auto" />
+        <button
+          className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-[13px] font-semibold text-accent-fg outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          aria-label="Настройки профиля"
+          onClick={onSettings}
+        >
+          {initial}
+        </button>
       </header>
 
-      {/* Mobile drawer */}
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
-              onClick={() => setOpen(false)}
-            />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.3, ease: EASE }}
-              className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] border-r border-border bg-surface lg:hidden"
-            >
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute top-5 right-3 z-10"
-                onClick={() => setOpen(false)}
-                aria-label="Закрыть меню"
+      {/* Mobile bottom tab bar — replaces the sidebar below lg */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+        aria-label="Основная навигация"
+      >
+        <div className="mx-auto flex max-w-md items-stretch">
+          {MOBILE_TABS.map((t) => {
+            const Icon = t.icon
+            const active = t.activeFor(tab)
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex min-w-0 flex-1 flex-col items-center gap-1 px-1 pt-2.5 pb-2 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+                  active ? "text-accent-text" : "text-fg-faint",
+                )}
               >
-                <X />
-              </Button>
-              <NavContent {...props} onNavigate={() => setOpen(false)} hideThemeToggle />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+                <Icon className={cn("size-5 transition-transform duration-200", active && "scale-110")} strokeWidth={active ? 2.2 : 2} />
+                <span className={cn("truncate text-[10px] leading-none", active ? "font-semibold" : "font-medium")}>
+                  {t.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </>
   )
 }

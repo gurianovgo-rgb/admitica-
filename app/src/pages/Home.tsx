@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, Calendar, Check, Flame, RefreshCw, Sparkles }
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ProgramLogo } from "@/components/ProgramLogo"
 import { usePersist } from "@/lib/persist"
 import { roadmapProgress, lookupItem, deadlineLabel } from "@/lib/roadmap"
 import type { AnyProgram, RoadmapEntry } from "@/legacy"
@@ -218,12 +219,7 @@ function ListRow({
           {index + 1}
         </div>
       )}
-      <div
-        className="grid size-9 shrink-0 place-items-center rounded-xl text-sm font-semibold text-white"
-        style={{ background: (item as { color?: string }).color ?? "#0f766e" /* white label needs a dark fill in both themes */ }}
-      >
-        {(item as { initial?: string }).initial ?? item.name[0]}
-      </div>
+      <ProgramLogo item={item} className="size-9 rounded-xl text-sm font-semibold" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{item.name}</div>
         <div className="truncate text-xs text-fg-muted">

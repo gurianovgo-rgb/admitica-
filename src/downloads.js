@@ -1,5 +1,5 @@
 // Document export helpers — DOCX (via docx library) and PDF (via pdfmake)
-// Shared between desktop (src/) and mobile (src-mobile/) — loaded as plain JS
+// Shared between the legacy desktop site (src/) and the Vite app (app/) — loaded as plain JS
 
 (function () {
   const triggerDownload = (blob, filename) => {

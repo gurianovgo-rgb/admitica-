@@ -48,9 +48,9 @@ const NOTIFICATIONS: { label: string; on: boolean }[] = [
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h4 className="mb-3 text-xs font-semibold tracking-widest text-fg-muted uppercase">
+    <h3 className="mb-3 text-xs font-semibold tracking-widest text-fg-muted uppercase">
       {children}
-    </h4>
+    </h3>
   )
 }
 

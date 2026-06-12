@@ -4,6 +4,7 @@ import { Check, Download, Plus, RefreshCw, Send, Sparkles, X } from "lucide-reac
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -107,7 +108,7 @@ function AchievementForm({
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <div className="mb-1 text-xs text-fg-muted">Название</div>
+            <Label className="mb-1.5">Название</Label>
             <Input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -115,7 +116,7 @@ function AchievementForm({
             />
           </div>
           <div>
-            <div className="mb-1 text-xs text-fg-muted">Организация и дата</div>
+            <Label className="mb-1.5">Организация и дата</Label>
             <Input
               value={form.org}
               onChange={(e) => setForm({ ...form, org: e.target.value })}
@@ -123,7 +124,7 @@ function AchievementForm({
             />
           </div>
           <div>
-            <div className="mb-1 text-xs text-fg-muted">Описание (1-2 предложения с метриками)</div>
+            <Label className="mb-1.5">Описание (1-2 предложения с метриками)</Label>
             <Textarea
               className="min-h-[70px]"
               value={form.desc}
@@ -132,7 +133,7 @@ function AchievementForm({
             />
           </div>
           <div>
-            <div className="mb-1 text-xs text-fg-muted">Навыки (через запятую)</div>
+            <Label className="mb-1.5">Навыки (через запятую)</Label>
             <Input
               value={typeof form.skills === "string" ? form.skills : (form.skills || []).join(", ")}
               onChange={(e) => setForm({ ...form, skills: e.target.value })}
@@ -167,7 +168,7 @@ function SuggestionCard({
     <Card className="gap-0 border-accent/40 bg-accent-soft p-4">
       <div className="mb-2.5 flex items-center gap-2">
         <Sparkles className="size-3.5 text-accent-text" />
-        <strong className="text-xs font-semibold tracking-widest text-accent-text uppercase">AI оформил пункт</strong>
+        <strong className="text-[13px] font-semibold text-accent-text">AI оформил пункт</strong>
       </div>
       <div className="text-[15px] font-medium">{suggestion.title}</div>
       <div className="mt-1 text-[13px] text-fg-muted">{suggestion.org}</div>
@@ -428,9 +429,8 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:px-5">
               <div className="min-w-0">
                 <strong className="text-sm font-semibold">AI-помощник</strong>
-                <div className="mt-0.5 truncate text-xs text-fg-muted">
-                  Расскажите → AI уточнит → оформит готовый пункт
-                </div>
+                {/* без truncate: на узком экране подпись переносится, а не обрезается */}
+                <div className="mt-0.5 text-xs text-fg-muted">Расскажите про достижение — AI оформит пункт CV</div>
               </div>
               <Button variant="ghost" size="sm" className="shrink-0" onClick={resetChat}>
                 <RefreshCw /> Сбросить
@@ -486,7 +486,7 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
               <Sparkles className="size-3.5 text-accent-text" />
               <strong className="text-[13px] font-semibold text-accent-text">Фидбек по всему CV</strong>
             </div>
-            <div className="mb-1.5 text-xs text-fg-muted">Роль проверяющего</div>
+            <Label className="mb-1.5">Роль проверяющего</Label>
             <div className="flex items-stretch gap-2">
               <Input
                 className="min-w-0 flex-1"

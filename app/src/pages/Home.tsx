@@ -5,9 +5,10 @@ import { ArrowRight, ArrowUpRight, Calendar, Check, Flame, RefreshCw, Sparkles }
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { DeadlineBadge } from "@/components/ProgramCard"
 import { ProgramLogo } from "@/components/ProgramLogo"
 import { usePersist } from "@/lib/persist"
-import { roadmapProgress, lookupItem, deadlineLabel } from "@/lib/roadmap"
+import { roadmapProgress, lookupItem } from "@/lib/roadmap"
 import type { AnyProgram, RoadmapEntry } from "@/legacy"
 import type { Tab } from "@/lib/nav"
 import { cn } from "@/lib/utils"
@@ -126,7 +127,7 @@ function StreakCard() {
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-sm font-semibold">Ежедневный стрик</div>
+          <h2 className="text-sm font-semibold">Ежедневный стрик</h2>
           <div className="mt-1 text-xs text-fg-muted">4 дня подряд — продолжайте</div>
         </div>
         <div className="flex items-center gap-1.5 text-2xl font-bold text-warning">
@@ -175,7 +176,7 @@ function QuoteCard() {
       >
         <RefreshCw />
       </Button>
-      <div className="text-xs font-semibold tracking-widest text-accent-text uppercase">Цитата дня</div>
+      <div className="text-xs font-semibold tracking-widest text-fg-muted uppercase">Цитата дня</div>
       <motion.blockquote
         key={i}
         initial={{ opacity: 0, y: 8 }}
@@ -206,7 +207,7 @@ function ListRow({
       variants={fadeUp}
       whileHover={{ x: 3 }}
       transition={{ duration: 0.2, ease: EASE }}
-      className="group flex cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-fg/4"
+      className="group flex cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-fg/5"
       onClick={onClick}
     >
       {index !== undefined && (
@@ -232,12 +233,7 @@ function ListRow({
   )
 }
 
-function DeadlineBadge({ days }: { days: number }) {
-  const d = deadlineLabel(days)
-  const variant =
-    d.tone === "danger" ? "destructive" : d.tone === "warn" ? "warning" : d.tone === "info" ? "default" : "secondary"
-  return <Badge variant={variant}>{d.txt}</Badge>
-}
+/* DeadlineBadge — общий компонент (@/components/ProgramCard) */
 
 /* ---------- page ---------- */
 export interface HomeProps {

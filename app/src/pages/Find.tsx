@@ -1,28 +1,15 @@
 import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import {
-  ArrowRight,
-  Banknote,
-  Briefcase,
-  Calendar,
-  Filter,
-  GraduationCap,
-  Heart,
-  MapPin,
-  Search,
-  Star,
-  Zap,
-} from "lucide-react"
+import { Briefcase, Filter, GraduationCap, Search, Zap } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { ProgramLogo } from "@/components/ProgramLogo"
+import { ProgramCard } from "@/components/ProgramCard"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Segmented } from "@/components/ui/segmented"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { deadlineLabel } from "@/lib/roadmap"
 import type { AnyProgram, Grant, Internship, University } from "@/legacy"
 import { cn } from "@/lib/utils"
 
@@ -60,134 +47,7 @@ interface Filters {
 
 type ListFilterKey = "degree" | "funding" | "format"
 
-/* ---------- deadline pill (same tone mapping as Home) ---------- */
-function DeadlineBadge({ days }: { days: number }) {
-  const d = deadlineLabel(days)
-  const variant =
-    d.tone === "danger" ? "destructive" : d.tone === "warn" ? "warning" : d.tone === "info" ? "default" : "secondary"
-  return (
-    <Badge variant={variant}>
-      <Calendar className="size-3" />
-      {d.txt}
-    </Badge>
-  )
-}
-
-/* ---------- result card ---------- */
-function UniCard({
-  u,
-  saved,
-  prio,
-  toggleSave,
-  togglePrio,
-  onOpen,
-}: {
-  u: CatalogItem
-  saved: boolean
-  prio: boolean
-  toggleSave: (id: string) => void
-  togglePrio: (id: string) => void
-  onOpen: (item: AnyProgram) => void
-}) {
-  const isUni = Boolean(u.program)
-  const isGrant = Boolean(u.funding)
-
-  return (
-    <motion.div variants={fadeUp} whileHover={{ y: -3 }} transition={{ duration: 0.2, ease: EASE }} className="h-full">
-      <Card
-        className="h-full cursor-pointer gap-3 p-4 sm:p-5"
-        onClick={() => onOpen(u)}
-        role="link"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && e.target === e.currentTarget && onOpen(u)}
-      >
-        {/* head */}
-        <div className="flex items-start gap-3">
-          <ProgramLogo item={u} className="size-11 rounded-xl text-lg font-medium" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] leading-snug font-medium break-words">{u.name}</div>
-            <div className="mt-0.5 text-[13px] break-words text-fg-muted">
-              {isUni ? u.program : isGrant ? u.org : u.role}
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className={cn("-mt-1 -mr-1 shrink-0", saved ? "text-accent-text hover:text-accent-text" : "hover:text-accent-text")}
-            title={saved ? "В избранном" : "Сохранить"}
-            aria-pressed={saved}
-            onClick={(e) => {
-              e.stopPropagation()
-              toggleSave(u.id)
-            }}
-          >
-            <Heart className={cn("size-4.5", saved && "fill-current")} />
-          </Button>
-        </div>
-
-        {/* meta */}
-        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-fg-muted">
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <MapPin className="size-3.5 shrink-0" /> {u.flag} {u.city || u.country}
-          </span>
-          {u.degree && (
-            <span className="inline-flex min-w-0 items-center gap-1">
-              <GraduationCap className="size-3.5 shrink-0" /> {u.degree}
-            </span>
-          )}
-          {u.duration && (
-            <span className="inline-flex min-w-0 items-center gap-1">
-              <Calendar className="size-3.5 shrink-0" /> {u.duration}
-            </span>
-          )}
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <Banknote className="size-3.5 shrink-0" /> {u.tuition || u.amount || u.stipend}
-          </span>
-        </div>
-
-        {/* tags */}
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary">{u.field || u.industry}</Badge>
-          {u.language && <Badge variant="secondary">{u.language}</Badge>}
-          {u.scholarship && <Badge>Гранты</Badge>}
-          {u.format && <Badge variant="secondary">{u.format}</Badge>}
-        </div>
-
-        {/* description */}
-        <p className="line-clamp-2 text-[13px] leading-relaxed text-fg-muted">{u.desc}</p>
-
-        {/* footer */}
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-          <DeadlineBadge days={u.deadlineDays} />
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(prio && "text-warning hover:text-warning")}
-              onClick={(e) => {
-                e.stopPropagation()
-                togglePrio(u.id)
-              }}
-            >
-              <Star className={cn("size-3.5", prio && "fill-current")} />
-              {prio ? "Приоритет" : "В приоритеты"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                onOpen(u)
-              }}
-            >
-              Подробнее <ArrowRight className="size-3" />
-            </Button>
-          </div>
-        </div>
-      </Card>
-    </motion.div>
-  )
-}
+/* Карточка результата и дедлайн-бейдж — общие с «Мои программы» (@/components/ProgramCard) */
 
 /* ---------- filter panel ---------- */
 function FilterGroup({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
@@ -372,31 +232,20 @@ export default function Find({ saved, priorities, toggleSave, togglePrio, openDe
       </motion.div>
 
       {/* kind subtabs */}
-      <motion.div
-        variants={fadeUp}
-        className="mb-5 flex w-full gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1 sm:w-fit"
-      >
-        {KIND_TABS.map((t) => {
-          const active = kind === t.id
-          const Icon = t.icon
-          return (
-            <button
-              key={t.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => {
-                setKind(t.id)
-                setFilters({})
-              }}
-              className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-medium whitespace-nowrap transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-4",
-                active ? "bg-accent font-semibold text-accent-fg" : "text-fg-muted hover:bg-fg/5 hover:text-fg",
-              )}
-            >
-              <Icon className="size-3.5" /> {t.label}
-            </button>
-          )
-        })}
+      <motion.div variants={fadeUp} className="mb-5">
+        <Segmented
+          className="w-full sm:w-fit"
+          value={kind}
+          onChange={(id) => {
+            setKind(id)
+            setFilters({})
+          }}
+          options={KIND_TABS.map((t) => ({
+            id: t.id,
+            label: t.label,
+            icon: <t.icon className="size-3.5" />,
+          }))}
+        />
       </motion.div>
 
       {/* search + sort */}
@@ -437,7 +286,7 @@ export default function Find({ saved, priorities, toggleSave, togglePrio, openDe
           className="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           {items.map((u) => (
-            <UniCard
+            <ProgramCard
               key={u.id}
               u={u}
               saved={saved.includes(u.id)}

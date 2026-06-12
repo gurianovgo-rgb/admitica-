@@ -1,25 +1,15 @@
 import { useRef, useState } from "react"
 import { AnimatePresence, motion, Reorder, useAnimate, useDragControls } from "framer-motion"
-import {
-  ArrowRight,
-  Banknote,
-  Calendar,
-  Check,
-  ChevronRight,
-  GraduationCap,
-  GripVertical,
-  Heart,
-  MapPin,
-  Star,
-  X,
-} from "lucide-react"
+import { Check, GripVertical, Heart, Star, X } from "lucide-react"
 
+import { DeadlineBadge, ProgramCard } from "@/components/ProgramCard"
 import { ProgramLogo } from "@/components/ProgramLogo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { roadmapProgress, lookupItem, deadlineLabel, type RoadmapProgressInfo } from "@/lib/roadmap"
+import { Segmented } from "@/components/ui/segmented"
+import { roadmapProgress, lookupItem, type RoadmapProgressInfo } from "@/lib/roadmap"
 import type { AnyProgram, Grant, Internship, RoadmapEntry, RoadmapStage, University } from "@/legacy"
 import type { Tab } from "@/lib/nav"
 import { cn } from "@/lib/utils"
@@ -40,146 +30,16 @@ const isUni = (p: AnyProgram): p is University => "program" in p
 const isGrant = (p: AnyProgram): p is Grant => "funding" in p
 const isIntern = (p: AnyProgram): p is Internship => "role" in p
 
-/* ---------- small shared pieces ---------- */
-function DeadlineBadge({ days, withIcon = false }: { days: number; withIcon?: boolean }) {
-  const d = deadlineLabel(days)
-  const variant =
-    d.tone === "danger" ? "destructive" : d.tone === "warn" ? "warning" : d.tone === "info" ? "default" : "secondary"
-  return (
-    <Badge variant={variant}>
-      {withIcon && <Calendar className="size-3" />}
-      {d.txt}
-    </Badge>
-  )
-}
-
-function Segmented<T extends string>({
-  value,
-  onChange,
-  options,
-}: {
-  value: T
-  onChange: (v: T) => void
-  options: { id: T; label: string }[]
-}) {
-  return (
-    <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1">
-      {options.map((o) => (
-        <button
-          key={o.id}
-          aria-pressed={value === o.id}
-          onClick={() => onChange(o.id)}
-          className={cn(
-            "shrink-0 rounded-lg px-4 py-2 text-[13px] font-medium whitespace-nowrap transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
-            value === o.id
-              ? "bg-accent font-semibold text-accent-fg shadow-[0_8px_24px_-12px_var(--color-accent-glow)]"
-              : "text-fg-muted hover:bg-fg/5 hover:text-fg",
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
+/* Карточка программы, дедлайн-бейдж и сегмент-контрол — общие компоненты
+   (@/components/ProgramCard, @/components/ui/segmented) */
 
 function EmptyState({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return (
     <motion.div variants={fadeUp}>
       <Card className="flex flex-col items-center gap-0 px-6 py-14 text-center">
         <span className="text-fg-faint">{icon}</span>
-        <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+        <h2 className="mt-4 text-lg font-semibold">{title}</h2>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-fg-muted">{text}</p>
-      </Card>
-    </motion.div>
-  )
-}
-
-/* ---------- saved card (port of legacy UniCard, used with saved=true) ---------- */
-function SavedCard({
-  u,
-  prio,
-  toggleSave,
-  togglePrio,
-  onOpen,
-}: {
-  u: AnyProgram
-  prio: boolean
-  toggleSave: (id: string) => void
-  togglePrio: (id: string) => void
-  onOpen: (item: AnyProgram) => void
-}) {
-  const sub = isUni(u) ? u.program : isGrant(u) ? u.org : u.role
-  const city = isUni(u) || isIntern(u) ? u.city : undefined
-  const money = isUni(u) ? u.tuition : isGrant(u) ? u.amount : u.stipend
-  const field = isIntern(u) ? u.industry : u.field
-
-  return (
-    <motion.div variants={fadeUp} whileHover={{ y: -3 }} transition={{ duration: 0.2, ease: EASE }} className="h-full">
-      <Card className="flex h-full flex-col gap-4 p-5 sm:p-6">
-        <div className="flex items-start gap-3">
-          <ProgramLogo item={u} className="size-10 rounded-xl text-sm font-semibold" />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold">{u.name}</div>
-            <div className="truncate text-xs text-fg-muted">{sub}</div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-accent-text hover:text-accent-text"
-            title="В избранном"
-            aria-label="В избранном"
-            onClick={() => toggleSave(u.id)}
-          >
-            <Heart className="fill-current" />
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-fg-muted">
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <MapPin className="size-3.5 shrink-0" /> {u.flag} {city || u.country}
-          </span>
-          {"degree" in u && u.degree && (
-            <span className="inline-flex min-w-0 items-center gap-1">
-              <GraduationCap className="size-3.5 shrink-0" /> {u.degree}
-            </span>
-          )}
-          {isIntern(u) && u.duration && (
-            <span className="inline-flex min-w-0 items-center gap-1">
-              <Calendar className="size-3.5 shrink-0" /> {u.duration}
-            </span>
-          )}
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <Banknote className="size-3.5 shrink-0" /> {money}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary">{field}</Badge>
-          {isUni(u) && u.language && <Badge variant="secondary">{u.language}</Badge>}
-          {isUni(u) && u.scholarship && <Badge>Гранты</Badge>}
-          {isIntern(u) && u.format && <Badge variant="secondary">{u.format}</Badge>}
-        </div>
-
-        <p className="line-clamp-2 text-[13px] leading-relaxed text-fg-muted">{u.desc}</p>
-
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
-          <DeadlineBadge days={u.deadlineDays} withIcon />
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(prio && "text-warning hover:text-warning")}
-              onClick={() => togglePrio(u.id)}
-            >
-              <Star className={cn(prio && "fill-current")} />
-              {prio ? "Приоритет" : "В приоритеты"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => onOpen(u)}>
-              Подробнее <ArrowRight />
-            </Button>
-          </div>
-        </div>
       </Card>
     </motion.div>
   )
@@ -231,9 +91,10 @@ function Saved({
       ) : (
         <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {items.map((u) => (
-            <SavedCard
+            <ProgramCard
               key={u.id}
               u={u}
+              saved
               prio={priorities.includes(u.id)}
               toggleSave={toggleSave}
               togglePrio={togglePrio}
@@ -364,7 +225,7 @@ function PriorityRow({
     >
       <Card ref={scope} className="group gap-0 overflow-hidden p-0">
         <div
-          className="flex cursor-pointer flex-wrap items-center gap-3 p-4 transition-colors duration-200 hover:bg-fg/4 sm:gap-4"
+          className="flex cursor-pointer flex-wrap items-center gap-3 p-4 transition-colors duration-200 hover:bg-fg/5 sm:gap-4"
           onClick={() => {
             if (suppressClick.current) {
               suppressClick.current = false // stray click from a handle press/drag
@@ -403,7 +264,7 @@ function PriorityRow({
             {index + 1}
           </div>
 
-          <ProgramLogo item={p} className="size-9.5 rounded-xl text-[15px] font-semibold" />
+          <ProgramLogo item={p} className="size-9 rounded-xl text-sm font-semibold" />
 
           <div className="min-w-0 flex-1 basis-40">
             <div className="truncate text-sm font-medium">{p.name}</div>
@@ -438,14 +299,6 @@ function PriorityRow({
           >
             Детали
           </Button>
-          {isUni(p) && (
-            <ChevronRight
-              className={cn(
-                "size-4 shrink-0 text-fg-faint transition-transform duration-200",
-                isOpen && "rotate-90",
-              )}
-            />
-          )}
           <Button
             variant="ghost"
             size="icon-sm"

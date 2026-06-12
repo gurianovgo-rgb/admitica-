@@ -14,15 +14,20 @@ import {
   Code,
   Cog,
   FlaskConical,
+  Globe,
   GraduationCap,
   HeartPulse,
+  Languages,
   Laptop,
+  Map,
   Megaphone,
   Pencil,
+  PenLine,
   PenTool,
   Plus,
   Scale,
   Search,
+  Wallet,
   X,
 } from "lucide-react"
 
@@ -81,24 +86,24 @@ interface Profile {
 
 /* ---------- option catalogs (verbatim legacy strings) ---------- */
 const MOTIVATION_OPTS = [
-  { val: "career", emoji: "💼", label: "Лучшие карьерные перспективы" },
-  { val: "quality", emoji: "📚", label: "Качество образования выше, чем дома" },
-  { val: "experience", emoji: "🌍", label: "Хочу новый опыт и самостоятельность" },
-  { val: "scholarship", emoji: "🎓", label: "Ищу стипендию / доступное образование" },
+  { val: "career", Icon: Briefcase, label: "Лучшие карьерные перспективы" },
+  { val: "quality", Icon: BookOpen, label: "Качество образования выше, чем дома" },
+  { val: "experience", Icon: Globe, label: "Хочу новый опыт и самостоятельность" },
+  { val: "scholarship", Icon: GraduationCap, label: "Ищу стипендию / доступное образование" },
 ]
 const CONCERN_OPTS = [
-  { val: "where", emoji: "🗺️", label: "Не знаю, куда вообще подавать" },
-  { val: "english", emoji: "🗣️", label: "Английский недостаточно хорош" },
-  { val: "essay", emoji: "✍️", label: "Как писать мотивационное письмо" },
-  { val: "money", emoji: "💸", label: "Не уверен, хватит ли денег" },
+  { val: "where", Icon: Map, label: "Не знаю, куда вообще подавать" },
+  { val: "english", Icon: Languages, label: "Английский недостаточно хорош" },
+  { val: "essay", Icon: PenLine, label: "Как писать мотивационное письмо" },
+  { val: "money", Icon: Wallet, label: "Не уверен, хватит ли денег" },
 ]
 const MOTIVATION_ORDER = [...MOTIVATION_OPTS.map((o) => o.val), "other"]
 const CONCERN_ORDER = [...CONCERN_OPTS.map((o) => o.val), "other"]
 
 const LEVEL_OPTS = [
-  { val: "bachelor", emoji: "🎓", title: "Бакалавриат", sub: "3–4 года" },
-  { val: "master", emoji: "📖", title: "Магистратура", sub: "1–2 года" },
-  { val: "phd", emoji: "🔬", title: "PhD / Докторантура", sub: "3–4 года" },
+  { val: "bachelor", Icon: GraduationCap, title: "Бакалавриат", sub: "3–4 года" },
+  { val: "master", Icon: BookOpen, title: "Магистратура", sub: "1–2 года" },
+  { val: "phd", Icon: FlaskConical, title: "PhD / Докторантура", sub: "3–4 года" },
 ]
 const LEVEL_ORDER = LEVEL_OPTS.map((o) => o.val)
 
@@ -190,6 +195,8 @@ interface MatchedProgram {
   cost: string
   deadline: string
   reason: string
+  /** Описание вуза — слот под текст в карточке (наполняется из данных). */
+  desc?: string
 }
 
 const FALLBACK_PROGRAMS: MatchedProgram[] = [
@@ -301,6 +308,7 @@ function buildMatches(profile: Profile): MatchedProgram[] {
     cost: u.tuition,
     deadline: u.deadline,
     reason: reasons.length ? "совпадает " + reasons.join(", ") : (u.desc || "").slice(0, 70),
+    desc: u.desc,
   }))
   return programs.length ? programs : FALLBACK_PROGRAMS.slice()
 }
@@ -359,7 +367,7 @@ const digitsOnly = (s: string) => s.replace(/[^0-9]/g, "")
    ============================================================ */
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-2 flex items-center gap-2 text-xs font-bold tracking-widest text-accent-text uppercase">
+    <div className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-widest text-accent-text uppercase">
       <span className="h-0.5 w-4 rounded-full bg-accent" />
       {children}
     </div>
@@ -385,7 +393,7 @@ function SelectCheck({ on }: { on: boolean }) {
           transition={{ duration: 0.2, ease: EASE }}
           className="absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full bg-accent text-accent-fg"
         >
-          <Check className="size-3" strokeWidth={3.5} />
+          <Check className="size-3" strokeWidth={3} />
         </motion.span>
       )}
     </AnimatePresence>
@@ -424,8 +432,12 @@ function OptionCard({
   )
 }
 
-function Emoji({ children }: { children: React.ReactNode }) {
-  return <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-card-2 text-[22px]">{children}</span>
+function IconTile({ Icon, className }: { Icon: IconType; className?: string }) {
+  return (
+    <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl bg-card-2", className)}>
+      <Icon className="size-5 text-accent-text" />
+    </span>
+  )
 }
 
 function CheckRow({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -444,7 +456,7 @@ function CheckRow({ on, onClick, children }: { on: boolean; onClick: () => void;
           on ? "border-accent bg-accent text-accent-fg" : "border-border-strong bg-card-2",
         )}
       >
-        {on && <Check className="size-3" strokeWidth={3.5} />}
+        {on && <Check className="size-3" strokeWidth={3} />}
       </span>
       {children}
     </button>
@@ -469,7 +481,7 @@ function OptOutCard({ on, onClick, children }: { on: boolean; onClick: () => voi
           on ? "border-accent bg-accent text-accent-fg" : "border-border-strong bg-card-2",
         )}
       >
-        {on && <Check className="size-3" strokeWidth={3.5} />}
+        {on && <Check className="size-3" strokeWidth={3} />}
       </span>
       {children}
     </button>
@@ -519,10 +531,10 @@ function Nav({
 }) {
   return (
     <div className="mt-7 flex items-center gap-3">
-      <Button variant="secondary" className="h-12 rounded-xl px-5" onClick={onBack}>
+      <Button variant="secondary" size="xl" className="px-5" onClick={onBack}>
         <ArrowLeft /> Назад
       </Button>
-      <Button className="h-12 flex-1 rounded-xl text-base" onClick={onNext} disabled={nextDisabled}>
+      <Button size="xl" className="flex-1" onClick={onNext} disabled={nextDisabled}>
         {nextLabel} <ArrowRight />
       </Button>
     </div>
@@ -671,26 +683,29 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     setScreen(12)
   }
 
-  /* AI screen choreography — same timings as legacy startAI() */
+  /* AI screen choreography — same timings as legacy startAI();
+     with reduced motion the sequence collapses to a short beat */
   useEffect(() => {
     if (screen !== 12) return
     const timers: ReturnType<typeof setTimeout>[] = []
-    let t = 450
+    const step = reduced ? 350 : 1350
+    const hold = reduced ? 250 : 1150
+    let t = reduced ? 150 : 450
     for (let i = 0; i < AI_LINES.length; i++) {
       const idx = i
       timers.push(setTimeout(() => setAiStep(idx), t))
-      timers.push(setTimeout(() => setAiStep(-1), t + 1150))
-      t += 1350
+      timers.push(setTimeout(() => setAiStep(-1), t + hold))
+      t += step
     }
     timers.push(
       setTimeout(() => {
         setAiStep(4)
-        burst(window.innerWidth / 2, window.innerHeight / 2 - 40)
+        if (!reduced) burst(window.innerWidth / 2, window.innerHeight / 2 - 40)
       }, t),
     )
-    timers.push(setTimeout(() => setScreen(13), t + 1700))
+    timers.push(setTimeout(() => setScreen(13), t + (reduced ? 500 : 1700)))
     return () => timers.forEach(clearTimeout)
-  }, [screen])
+  }, [screen, reduced])
 
   /* languages */
   const addLangRow = () => {
@@ -741,12 +756,13 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     }
   }
 
-  /* ---------- completion: byte-compatible with legacy finishOnboarding() ---------- */
-  const finishOnboarding = () => {
+  /* ---------- completion: byte-compatible with legacy finishOnboarding() ----------
+     idsOverride: «Пропустить» передаёт [] — выбор не сохраняется. */
+  const finishOnboarding = (idsOverride?: string[]) => {
     if (doneRef.current) return
     doneRef.current = true
     try {
-      const ids = savedSel.filter((x) => /^[ugi]\d+$/.test(x))
+      const ids = (idsOverride ?? savedSel).filter((x) => /^[ugi]\d+$/.test(x))
       const out: Record<string, unknown> = {
         ...profile,
         langs: langRows.map(({ key: _key, ...entry }) => entry),
@@ -768,6 +784,8 @@ export default function Onboarding({ onDone }: OnboardingProps) {
 
   /* progress chrome — same formula as legacy progressWidth() */
   const pw = screen < 2 || screen > 11 ? null : 11 + ((screen - 2) * (100 - 11)) / 9
+  const lastPw = useRef(11)
+  if (pw !== null) lastPw.current = pw
 
   const budgetTone: BudgetTone = /беспл/i.test(profile.budget) ? "free" : /∞/.test(profile.budget) ? "inf" : "norm"
 
@@ -824,7 +842,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                     className="h-12 rounded-xl text-center text-base"
                     aria-label="Твоё имя"
                   />
-                  <Button className="h-12 rounded-xl text-base" onClick={submitName} disabled={!nameDraft.trim()}>
+                  <Button size="xl" onClick={submitName} disabled={!nameDraft.trim()}>
                     Начать <ArrowRight />
                   </Button>
                 </motion.div>
@@ -845,7 +863,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 const sel = profile.motivation?.includes(o.val) ?? false
                 return (
                   <OptionCard key={o.val} selected={sel} onClick={() => toggleMulti("motivation", o.val, MOTIVATION_ORDER)}>
-                    <Emoji>{o.emoji}</Emoji>
+                    <IconTile Icon={o.Icon} />
                     <span className="pr-6 text-[15px] font-medium">{o.label}</span>
                   </OptionCard>
                 )
@@ -873,7 +891,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 const sel = profile.concern?.includes(o.val) ?? false
                 return (
                   <OptionCard key={o.val} selected={sel} onClick={() => toggleMulti("concern", o.val, CONCERN_ORDER)}>
-                    <Emoji>{o.emoji}</Emoji>
+                    <IconTile Icon={o.Icon} />
                     <span className="pr-6 text-[15px] font-medium">{o.label}</span>
                   </OptionCard>
                 )
@@ -906,7 +924,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 const sel = profile.level?.includes(o.val) ?? false
                 return (
                   <OptionCard key={o.val} selected={sel} onClick={() => { toggleMulti("level", o.val, LEVEL_ORDER); setLevelUnknown(false) }}>
-                    <Emoji>{o.emoji}</Emoji>
+                    <IconTile Icon={o.Icon} />
                     <span className="pr-6">
                       <span className="block text-base font-semibold">{o.title}</span>
                       <span className="mt-0.5 block text-xs text-fg-muted">{o.sub}</span>
@@ -1093,7 +1111,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                   {langRows.map((row, i) => (
                     <div key={row.key} className="mt-3.5 flex flex-col gap-3 border-l-2 border-accent/25 pl-4">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold tracking-wider text-accent-text uppercase">Язык {i + 1}</span>
+                        <span className="text-xs font-semibold tracking-widest text-accent-text uppercase">Язык {i + 1}</span>
                         <button
                           type="button"
                           aria-label="Убрать"
@@ -1253,14 +1271,15 @@ export default function Onboarding({ onDone }: OnboardingProps) {
         const dim = cnt >= COUNTRY_MAX
         return (
           <div>
+            <Kicker>География</Kicker>
             <div className="flex items-start justify-between gap-3">
               <Heading>В каких странах хочешь учиться?</Heading>
               <button
                 type="button"
                 onClick={next}
-                className="mt-1 shrink-0 text-sm text-fg-muted transition-colors hover:text-fg"
+                className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-md text-sm text-fg-muted transition-colors outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent/60"
               >
-                Пропустить →
+                Пропустить <ArrowRight className="size-3.5" />
               </button>
             </div>
             <Subtext>Выбери до 3 стран</Subtext>
@@ -1293,7 +1312,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 onClick={() => toggleCountry("any")}
                 className="min-h-16 p-3.5 sm:col-span-2"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-card-2 text-xl">🌍</span>
+                <IconTile Icon={Globe} className="size-10" />
                 <span className="pr-6 text-[15px] font-medium">
                   Рассматриваю весь мир, главное - качество образования и цена
                 </span>
@@ -1387,8 +1406,8 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                     i === 2 ? "border-accent/20" : "border-accent/40",
                   )}
                   style={{ width: 80 + i * 50, height: 80 + i * 50, x: "-50%", y: "-50%" }}
-                  animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: i * 0.6 }}
+                  animate={reduced ? { opacity: 0.35 } : { scale: [1, 1.4], opacity: [0.6, 0] }}
+                  transition={reduced ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeOut", delay: i * 0.6 }}
                 />
               ))}
               <div className="absolute top-1/2 left-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_0_6px_var(--color-accent-soft)]" />
@@ -1430,54 +1449,22 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           <div>
             <Heading className="max-w-2xl">{displayName}, вот что подошло под твой профиль</Heading>
             <Subtext>Основано на твоих баллах, бюджете и предпочтениях</Subtext>
+
+            {/* Мобайл и планшет: вращающийся барабан — только свайп влево/вправо */}
+            <UniWheel programs={programs} savedSel={savedSel} onToggleSave={toggleProgSave} />
+
+            {/* Десктоп: сетка */}
             <motion.div
               variants={stagger}
               initial="hidden"
               animate="show"
-              className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="mt-7 hidden gap-4 lg:grid lg:grid-cols-3"
             >
               {programs.map((p, i) => {
                 const pid = p.id || "fb" + i
-                const on = savedSel.includes(pid)
                 return (
                   <motion.div key={pid} variants={fadeUp}>
-                    <Card className="h-full gap-0 overflow-hidden p-0">
-                      <div className="h-1 w-full bg-gradient-to-r from-accent to-accent/30" />
-                      <div className="flex flex-1 flex-col p-5">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[15px] leading-snug font-semibold">{p.university}</span>
-                          <span className="text-xs whitespace-nowrap text-fg-muted">
-                            {p.flag} {p.country}
-                          </span>
-                        </div>
-                        <div className="mt-1.5 text-sm font-medium">{p.program}</div>
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          <Badge>{p.cost}</Badge>
-                          <Badge variant="secondary">{p.deadline}</Badge>
-                        </div>
-                        <p className="mt-2.5 text-[13px] leading-relaxed text-fg-muted">
-                          Подходит: <em>{p.reason}</em>
-                        </p>
-                        <button
-                          type="button"
-                          onClick={(e) => toggleProgSave(pid, e)}
-                          className="mt-auto flex w-full items-center gap-2.5 border-t border-border pt-3 text-left [margin-top:auto]"
-                          style={{ marginTop: "auto", paddingTop: 12 }}
-                        >
-                          <span
-                            className={cn(
-                              "grid size-4.5 shrink-0 place-items-center rounded-[5px] border transition-colors",
-                              on ? "border-accent bg-accent text-accent-fg" : "border-border-strong",
-                            )}
-                          >
-                            {on && <Check className="size-3" strokeWidth={3.5} />}
-                          </span>
-                          <span className={cn("text-sm", on ? "font-medium text-accent-text" : "text-fg-muted")}>
-                            {on ? "Сохранено" : "Сохранить"}
-                          </span>
-                        </button>
-                      </div>
-                    </Card>
+                    <ResultCard p={p} on={savedSel.includes(pid)} onToggleSave={(e) => toggleProgSave(pid, e)} />
                   </motion.div>
                 )
               })}
@@ -1487,10 +1474,10 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 {n} {plural(n, "программа", "программы", "программ")} выбрано
               </Badge>
               <div className="flex gap-3 max-sm:flex-col">
-                <Button variant="secondary" className="h-11 rounded-xl px-6" onClick={finishOnboarding}>
+                <Button variant="secondary" size="xl" onClick={() => finishOnboarding([])}>
                   Пропустить
                 </Button>
-                <Button className="h-11 rounded-xl px-6" onClick={finishOnboarding}>
+                <Button size="xl" onClick={() => finishOnboarding()}>
                   Войти в Admitica
                 </Button>
               </div>
@@ -1508,14 +1495,15 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     <div className="relative min-h-dvh">
       <div className="hero-glow pointer-events-none fixed inset-0 opacity-50" />
 
-      {/* progress chrome (screens 2–11, same widths as legacy) */}
+      {/* progress chrome (screens 2–11, same widths as legacy);
+          width freezes on the last value while fading out — no backwards jump */}
       <div
         aria-hidden
         className={cn("fixed inset-x-0 top-0 z-20 h-1 bg-fg/8 transition-opacity duration-300", pw === null && "opacity-0")}
       >
         <div
-          className="h-full rounded-r-full bg-accent transition-[width] duration-500 ease-in-out"
-          style={{ width: `${pw ?? 11}%` }}
+          className="h-full rounded-r-full bg-accent transition-[width] duration-500 ease-[var(--ease-out-soft)]"
+          style={{ width: `${pw ?? lastPw.current}%` }}
         />
       </div>
 
@@ -1546,6 +1534,188 @@ export default function Onboarding({ onDone }: OnboardingProps) {
   )
 }
 
+/* ---------- result card (screen 13) — единый размер на барабане и в сетке ---------- */
+function ResultCard({
+  p,
+  on,
+  onToggleSave,
+  interactive = true,
+  className,
+}: {
+  p: MatchedProgram
+  on: boolean
+  onToggleSave: (e: React.MouseEvent<HTMLButtonElement>) => void
+  interactive?: boolean
+  className?: string
+}) {
+  return (
+    <Card className={cn("h-full gap-0 overflow-hidden p-0", !interactive && "pointer-events-none", className)}>
+      <div className="h-1 w-full shrink-0 bg-gradient-to-r from-accent to-accent/30" />
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-[15px] leading-snug font-semibold">{p.university}</span>
+          <span className="text-xs whitespace-nowrap text-fg-muted">
+            {p.flag} {p.country}
+          </span>
+        </div>
+        <div className="mt-1.5 text-sm font-medium">{p.program}</div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <Badge>{p.cost}</Badge>
+          <Badge variant="secondary">{p.deadline}</Badge>
+        </div>
+        <p className="mt-2.5 text-[13px] leading-relaxed text-fg-muted">
+          Подходит: <em>{p.reason}</em>
+        </p>
+        {/* слот под текст вуза: высота зарезервирована, наполняется описанием */}
+        <p className="mt-3 line-clamp-3 min-h-16 text-[13px] leading-relaxed text-fg-muted">{p.desc ?? ""}</p>
+        <button
+          type="button"
+          onClick={onToggleSave}
+          disabled={!interactive}
+          className="mt-auto flex w-full cursor-pointer items-center gap-2.5 border-t border-border pt-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          <span
+            className={cn(
+              "grid size-4.5 shrink-0 place-items-center rounded-[5px] border transition-colors duration-200",
+              on ? "border-accent bg-accent text-accent-fg" : "border-border-strong",
+            )}
+          >
+            {on && <Check className="size-3" strokeWidth={3} />}
+          </span>
+          <span className={cn("text-sm", on ? "font-medium text-accent-text" : "text-fg-muted")}>
+            {on ? "Сохранено" : "Сохранить"}
+          </span>
+        </button>
+      </div>
+    </Card>
+  )
+}
+
+/* ---------- university wheel (screen 13, < lg) ----------
+   Вращающийся барабан: карточки на 3D-дуге, навигация ТОЛЬКО
+   горизонтальным свайпом (или тапом по соседней карточке / точкам). */
+function UniWheel({
+  programs,
+  savedSel,
+  onToggleSave,
+}: {
+  programs: MatchedProgram[]
+  savedSel: string[]
+  onToggleSave: (pid: string, e: React.MouseEvent<HTMLButtonElement>) => void
+}) {
+  const reduced = useReducedMotion()
+  const [idx, setIdx] = useState(0)
+  const justDragged = useRef(false)
+
+  const go = (n: number) => setIdx(Math.max(0, Math.min(programs.length - 1, n)))
+  const spring = reduced
+    ? { duration: 0 }
+    : ({ type: "spring", stiffness: 230, damping: 28 } as const)
+
+  return (
+    // full-bleed до краёв вьюпорта + clip, чтобы боковые карточки не создавали
+    // горизонтальный скролл страницы
+    <div className="-mx-5 overflow-x-clip px-5 sm:-mx-6 sm:px-6 lg:hidden">
+      <motion.div
+        role="group"
+        aria-roledescription="карусель"
+        aria-label="Рекомендованные программы"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft") {
+            e.preventDefault()
+            go(idx - 1)
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault()
+            go(idx + 1)
+          }
+        }}
+        className="relative mt-6 h-[27rem] rounded-2xl outline-none [perspective:1100px] focus-visible:ring-2 focus-visible:ring-accent/60"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.16}
+        dragMomentum={false}
+        onDragStart={() => {
+          justDragged.current = true
+        }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -48 || info.velocity.x < -420) go(idx + 1)
+          else if (info.offset.x > 48 || info.velocity.x > 420) go(idx - 1)
+          // отпускаем флаг после того, как браузер диспатчит пост-drag click
+          setTimeout(() => {
+            justDragged.current = false
+          }, 0)
+        }}
+      >
+        {programs.map((p, i) => {
+          const pid = p.id || "fb" + i
+          const off = i - idx
+          const dist = Math.abs(off)
+          return (
+            <motion.div
+              key={pid}
+              aria-hidden={off !== 0 || undefined}
+              className="absolute inset-x-0 top-0 mx-auto h-[25rem] w-[min(76vw,300px)] [transform-style:preserve-3d]"
+              animate={{
+                x: `${off * 66}%`,
+                y: dist * 14,
+                rotateY: off * -32,
+                scale: 1 - Math.min(dist, 2) * 0.12,
+                opacity: dist > 2 ? 0 : dist === 2 ? 0.25 : dist === 1 ? 0.55 : 1,
+              }}
+              transition={spring}
+              style={{ zIndex: 10 - dist, pointerEvents: dist > 2 ? "none" : "auto" }}
+              onClick={() => {
+                if (justDragged.current) return
+                if (off !== 0) go(i)
+              }}
+            >
+              <ResultCard
+                p={p}
+                on={savedSel.includes(pid)}
+                interactive={off === 0}
+                onToggleSave={(e) => {
+                  if (justDragged.current) return
+                  onToggleSave(pid, e)
+                }}
+              />
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      {/* объявление позиции для скринридеров */}
+      <span aria-live="polite" className="sr-only">
+        Программа {idx + 1} из {programs.length}: {programs[idx]?.university}
+      </span>
+
+      {/* индикатор позиции */}
+      <div className="mt-3 flex flex-col items-center gap-1.5">
+        <div className="flex items-center">
+          {programs.map((p, i) => (
+            <button
+              key={p.id || "fb" + i}
+              type="button"
+              aria-label={`Программа ${i + 1} из ${programs.length}`}
+              aria-current={i === idx ? "true" : undefined}
+              onClick={() => go(i)}
+              className="grid size-6 cursor-pointer place-items-center outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              <span
+                className={cn(
+                  "block h-1.5 rounded-full transition-all duration-300",
+                  i === idx ? "w-5 bg-accent" : "w-1.5 bg-fg/15",
+                )}
+              />
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-fg-faint">Свайпай, чтобы листать</span>
+      </div>
+    </div>
+  )
+}
+
 /* ---------- «Другое» expandable card (screens 2–3) ---------- */
 function ExpandCard({
   selected,
@@ -1561,13 +1731,14 @@ function ExpandCard({
   return (
     <motion.div
       variants={fadeUp}
+      whileTap={{ scale: 0.97 }}
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border bg-card transition-colors duration-200",
+        "relative w-full overflow-hidden rounded-2xl border bg-card transition-colors duration-200 focus-within:ring-2 focus-within:ring-accent/60",
         selected ? "border-accent bg-accent-soft" : "border-border hover:border-accent/40",
       )}
     >
-      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3.5 p-4 text-left">
-        <Emoji>✏️</Emoji>
+      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3.5 p-4 text-left outline-none">
+        <IconTile Icon={Pencil} />
         <span className="pr-6 text-[15px] font-medium">Другое</span>
       </button>
       <AnimatePresence initial={false}>

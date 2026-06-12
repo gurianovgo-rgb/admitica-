@@ -4,13 +4,14 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowLeft, Bold, Download, Italic, List, Loader2, Sparkles, Star } from "lucide-react"
 
+import { DeadlineBadge } from "@/components/ProgramCard"
 import { ProgramLogo } from "@/components/ProgramLogo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Segmented } from "@/components/ui/segmented"
 import { useToast } from "@/components/ui/toast"
 import { usePersist } from "@/lib/persist"
-import { deadlineLabel } from "@/lib/roadmap"
 import { cn } from "@/lib/utils"
 import type { EssayRequirements, University } from "@/legacy"
 
@@ -87,14 +88,7 @@ const INITIAL_FEEDBACK: FeedbackItem[] = [
   },
 ]
 
-/* ---------- small pieces ---------- */
-function DeadlineBadge({ days }: { days: number }) {
-  const d = deadlineLabel(days)
-  const variant =
-    d.tone === "danger" ? "destructive" : d.tone === "warn" ? "warning" : d.tone === "info" ? "default" : "secondary"
-  return <Badge variant={variant}>{d.txt}</Badge>
-}
-
+/* ---------- small pieces (DeadlineBadge — общий, @/components/ProgramCard) ---------- */
 function UniTile({ uni }: { uni: University }) {
   return (
     <ProgramLogo item={uni} className="size-10 rounded-xl text-base font-semibold" />
@@ -108,24 +102,24 @@ function EssayReqsPanel({ uni }: { uni: University | null }) {
   return (
     <Card className="p-5 sm:p-6">
       <div>
-        <div className="text-[11px] font-semibold tracking-widest text-fg-muted uppercase">
+        <div className="text-xs font-semibold tracking-widest text-fg-muted uppercase">
           Задача · {req.type} · до {req.wordLimit} слов
         </div>
         <p className="mt-2 text-sm leading-relaxed">{req.prompt}</p>
-        <div className="mt-4 mb-1.5 text-[11px] font-semibold tracking-widest text-fg-muted uppercase">
+        <div className="mt-4 mb-1.5 text-xs font-semibold tracking-widest text-fg-muted uppercase">
           Требования {uni.name}
         </div>
-        <ul className="list-disc pl-4 text-[12.5px] leading-relaxed">
+        <ul className="list-disc pl-4 text-[13px] leading-relaxed">
           {req.requirements.map((r, i) => (
             <li key={i}>{r}</li>
           ))}
         </ul>
         {req.tips && req.tips.length > 0 && (
           <>
-            <div className="mt-4 mb-1.5 text-[11px] font-semibold tracking-widest text-fg-muted uppercase">
+            <div className="mt-4 mb-1.5 text-xs font-semibold tracking-widest text-fg-muted uppercase">
               Советы
             </div>
-            <ul className="list-disc pl-4 text-[12.5px] leading-relaxed text-fg-muted">
+            <ul className="list-disc pl-4 text-[13px] leading-relaxed text-fg-muted">
               {req.tips.map((t, i) => (
                 <li key={i}>{t}</li>
               ))}
@@ -232,25 +226,15 @@ ${text}`,
       </motion.div>
 
       {/* subtabs */}
-      <motion.div variants={fadeUp} className="mb-6 inline-flex rounded-xl border border-border bg-card p-1">
-        {(
-          [
-            ["mine", "Мои эссе"],
-            ["bank", "Банк эссе"],
-          ] as const
-        ).map(([m, label]) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMode(m)}
-            className={cn(
-              "rounded-lg px-4 py-1.5 text-sm transition-colors duration-200",
-              mode === m ? "bg-accent font-semibold text-accent-fg" : "text-fg-muted hover:bg-fg/5 hover:text-fg",
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <motion.div variants={fadeUp} className="mb-6">
+        <Segmented
+          value={mode}
+          onChange={setMode}
+          options={[
+            { id: "mine", label: "Мои эссе" },
+            { id: "bank", label: "Банк эссе" },
+          ]}
+        />
       </motion.div>
 
       <motion.div
@@ -264,7 +248,7 @@ ${text}`,
             <Card className="p-10 text-center sm:p-14">
               <div>
                 <Star className="mx-auto size-9 text-fg-faint" />
-                <h3 className="mt-4 text-lg font-semibold">В приоритетах пока нет вузов</h3>
+                <h2 className="mt-4 text-lg font-semibold">В приоритетах пока нет вузов</h2>
                 <p className="mx-auto mt-2 max-w-md text-sm text-fg-muted">
                   Добавьте университеты в приоритеты — для каждого здесь появится эссе с требованиями программы
                 </p>
@@ -348,7 +332,7 @@ ${text}`,
               ) : (
                 <Card className="p-5">
                   <div>
-                    <h3 className="text-sm font-semibold">Эссе</h3>
+                    <h2 className="text-sm font-semibold">Эссе</h2>
                     <div className="mt-3 flex flex-col gap-2">
                       {ESSAY_PROMPTS.map((p) => (
                         <button

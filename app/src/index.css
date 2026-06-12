@@ -119,6 +119,53 @@ html, body {
     0 12px 32px -20px rgba(13, 26, 24, 0.18);
 }
 
+/* Range sliders (GPA, budget, tuition filter) — system track + accent thumb
+   instead of the per-browser UA defaults */
+input[type="range"] {
+  appearance: none;
+  height: 20px;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-fg) 8%, transparent);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -7px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--color-accent);
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  cursor: grab;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--color-accent);
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+  cursor: grab;
+}
+input[type="range"]:focus-visible {
+  outline: none;
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+input[type="range"]:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

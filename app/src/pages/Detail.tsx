@@ -72,7 +72,7 @@ function DeadlineBadge({ days }: { days: number }) {
 
 function SectionHeading({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <h3 className={cn("text-xs font-semibold tracking-widest text-fg-muted uppercase", className)}>{children}</h3>
+    <h2 className={cn("text-xs font-semibold tracking-widest text-fg-muted uppercase", className)}>{children}</h2>
   )
 }
 
@@ -311,7 +311,7 @@ export default function Detail({
           <motion.div variants={fadeUp}>
             <Card className="gap-0 border-accent/20 bg-accent-soft p-6">
               <div className="flex items-center gap-2">
-                <Sparkles className="size-4 text-accent-text" />
+                <Sparkles className="size-3.5 text-accent-text" />
                 <strong className="text-[13px] font-semibold text-accent-text">AI-совет</strong>
               </div>
               <p className="mt-2.5 text-[13px] leading-relaxed text-fg-muted">

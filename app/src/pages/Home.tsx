@@ -79,7 +79,7 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
   const current = progs[0] ?? null
 
   return (
-    <Card className="relative overflow-hidden p-6 sm:p-7 md:col-span-2">
+    <Card className="relative overflow-hidden p-6 sm:p-7 lg:col-span-2">
       <div className="hero-glow pointer-events-none absolute inset-0 opacity-60" />
       <div className="relative flex h-full flex-col">
         <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-fg-muted uppercase">
@@ -202,12 +202,13 @@ function ListRow({
   trailing?: React.ReactNode
   onClick?: () => void
 }) {
+  const subtitle = "program" in item ? item.program : "org" in item ? item.org : (item as { role?: string }).role
   return (
     <motion.div
       variants={fadeUp}
       whileHover={{ x: 3 }}
       transition={{ duration: 0.2, ease: EASE }}
-      className="group flex cursor-pointer items-center gap-3.5 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-fg/5"
+      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2.5 transition-colors duration-200 hover:bg-fg/5"
       onClick={onClick}
     >
       {index !== undefined && (
@@ -221,14 +222,17 @@ function ListRow({
         </div>
       )}
       <ProgramLogo item={item} className="size-9 rounded-xl text-sm font-semibold" />
+      {/* name owns the full row width; deadline sits with the subtitle below */}
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium">{item.name}</div>
-        <div className="truncate text-xs text-fg-muted">
-          {"program" in item ? item.program : "org" in item ? item.org : (item as { role?: string }).role}
+        <div className="flex items-center gap-2">
+          <span className="truncate text-sm font-medium">{item.name}</span>
+          <ArrowUpRight className="size-4 shrink-0 text-fg-faint opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="min-w-0 flex-1 truncate text-xs text-fg-muted">{subtitle}</span>
+          {trailing && <span className="shrink-0">{trailing}</span>}
         </div>
       </div>
-      {trailing}
-      <ArrowUpRight className="size-4 shrink-0 text-fg-faint opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
     </motion.div>
   )
 }
@@ -273,15 +277,20 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
         </Button>
       </motion.div>
 
-      {/* bento: goal + streak + quote */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {/* bento: goal (2/3) + right column with streak & quote (1/3) */}
+      <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <GoalCard roadmaps={roadmaps} onOpen={() => setTab("p_priority")} />
-        <StreakCard />
-        <QuoteCard />
+        <div className="flex flex-col gap-4">
+          <StreakCard />
+          <QuoteCard />
+        </div>
+      </motion.div>
 
+      {/* priorities + deadlines — half-width each so names have room */}
+      <motion.div variants={fadeUp} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* priorities */}
-        <Card className="p-5">
-          <div className="mb-2 flex items-center justify-between px-3">
+        <Card className="p-4 sm:p-5">
+          <div className="mb-1 flex items-center justify-between px-2">
             <h2 className="text-sm font-semibold">Ваши приоритеты</h2>
             <Button variant="link" size="xs" onClick={() => setTab("p_priority")}>
               Все <ArrowRight />
@@ -307,8 +316,8 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
         </Card>
 
         {/* deadlines */}
-        <Card className="p-5">
-          <div className="mb-2 flex items-center justify-between px-3">
+        <Card className="p-4 sm:p-5">
+          <div className="mb-1 flex items-center justify-between px-2">
             <h2 className="text-sm font-semibold">Ближайшие дедлайны</h2>
             <Badge variant="warning">
               <Calendar className="size-3" /> {upcoming.length} активных

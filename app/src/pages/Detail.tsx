@@ -7,14 +7,17 @@ import {
   Calendar,
   Check,
   Heart,
+  Minus,
   Sparkles,
   Star,
 } from "lucide-react"
 
 import { ProgramLogo } from "@/components/ProgramLogo"
+import { Accordion, AccordionItem } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { UNI_CONTENT, type UniSection } from "@/data/uniContent"
 import { deadlineLabel } from "@/lib/roadmap"
 import type { AnyProgram, Grant, University } from "@/legacy"
 import { cn } from "@/lib/utils"
@@ -76,6 +79,65 @@ function SectionHeading({ children, className }: { children: React.ReactNode; cl
   )
 }
 
+/* ---------- rich profile section body (uniContent) ---------- */
+function SectionBody({ s }: { s: UniSection }) {
+  return (
+    <div className="flex flex-col gap-3">
+      {s.body && <p className="text-sm leading-relaxed text-fg-muted">{s.body}</p>}
+      {s.facts && s.facts.length > 0 && (
+        <ul className="flex flex-col gap-2 text-sm leading-relaxed">
+          {s.facts.map((f) => (
+            <li key={f} className="flex items-start gap-2.5">
+              <Check className="mt-0.5 size-4 shrink-0 text-accent-text" />
+              <span className="text-fg-muted">{f}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {(s.pros || s.cons) && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {s.pros && (
+            <div>
+              <div className="mb-2 text-xs font-semibold tracking-widest text-positive uppercase">Плюсы</div>
+              <ul className="flex flex-col gap-2 text-sm leading-relaxed">
+                {s.pros.map((p) => (
+                  <li key={p} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 size-4 shrink-0 text-positive" />
+                    <span className="text-fg-muted">{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {s.cons && (
+            <div>
+              <div className="mb-2 text-xs font-semibold tracking-widest text-warning uppercase">Минусы</div>
+              <ul className="flex flex-col gap-2 text-sm leading-relaxed">
+                {s.cons.map((c) => (
+                  <li key={c} className="flex items-start gap-2.5">
+                    <Minus className="mt-0.5 size-4 shrink-0 text-warning" />
+                    <span className="text-fg-muted">{c}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+      {s.note && <p className="text-[13px] leading-relaxed text-fg-faint">{s.note}</p>}
+      {s.ru && (
+        <div className="flex gap-2.5 rounded-xl border border-accent/30 bg-accent-soft p-3.5">
+          <span className="shrink-0 text-base leading-none">🇷🇺</span>
+          <p className="text-[13px] leading-relaxed text-fg-muted">
+            <strong className="font-semibold text-accent-text">Для России: </strong>
+            {s.ru}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function KvList({ rows }: { rows: { k: string; v: string }[] }) {
   return (
     <dl className="mt-4 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-3 text-sm">
@@ -117,6 +179,7 @@ export default function Detail({
 }: DetailProps) {
   const it = item
   const uniGrants = "program" in it ? grantsForUni(it) : []
+  const content = UNI_CONTENT[it.id]
 
   const reqs: { k: string; v: string }[] =
     "program" in it
@@ -214,6 +277,20 @@ export default function Detail({
         </div>
       </motion.div>
 
+      {/* quick-fact chips */}
+      {content && (
+        <motion.div variants={fadeUp} className="mt-6 flex flex-wrap gap-2">
+          {content.chips.map((c) => (
+            <span
+              key={c}
+              className="rounded-full border border-border bg-card-2 px-3 py-1.5 text-xs font-medium text-fg-muted"
+            >
+              {c}
+            </span>
+          ))}
+        </motion.div>
+      )}
+
       {/* body grid */}
       <div className="mt-8 grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
         {/* left column */}
@@ -223,7 +300,7 @@ export default function Detail({
               <SectionHeading>О программе</SectionHeading>
               <p className="mt-3 text-sm leading-relaxed text-fg-muted">{it.desc}</p>
 
-              {"program" in it && (
+              {"program" in it && !content && (
                 <>
                   <SectionHeading className="mt-7">Почему это сильный выбор</SectionHeading>
                   <ul className="mt-3 flex flex-col gap-2.5 text-sm leading-relaxed text-fg-muted">
@@ -244,12 +321,40 @@ export default function Detail({
             </Card>
           </motion.div>
 
+          {/* extended profile (uniContent) */}
+          {content && (
+            <motion.div variants={fadeUp}>
+              <SectionHeading className="mb-3 px-1">Профиль вуза</SectionHeading>
+              <Accordion>
+                {content.sections.map((s, i) => (
+                  <AccordionItem key={s.title} title={s.title} accent={s.accent} defaultOpen={i === 0}>
+                    <SectionBody s={s} />
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
+          )}
+
           <motion.div variants={fadeUp}>
             <Card className="gap-0 p-6 sm:p-7">
               <SectionHeading>Требования к поступлению</SectionHeading>
               <KvList rows={reqs} />
             </Card>
           </motion.div>
+
+          {/* FAQ */}
+          {content && content.faq.length > 0 && (
+            <motion.div variants={fadeUp}>
+              <SectionHeading className="mb-3 px-1">Частые вопросы</SectionHeading>
+              <Accordion>
+                {content.faq.map((f) => (
+                  <AccordionItem key={f.q} title={f.q}>
+                    <p className="text-sm leading-relaxed text-fg-muted">{f.a}</p>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
+          )}
         </div>
 
         {/* right column */}

@@ -86,10 +86,10 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
           <Sparkles className="size-3.5 text-accent-text" />
           Цель — поступление
         </div>
-        <div className="mt-4 text-5xl font-bold tracking-tight sm:text-6xl">
+        <div className="mt-3 text-6xl font-bold tracking-tight sm:text-7xl">
           <CountUp to={pct} suffix="%" />
         </div>
-        <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-fg/8">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-fg/8">
           <motion.div
             className="h-full rounded-full bg-accent"
             initial={{ width: 0 }}
@@ -97,7 +97,7 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
             transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
           />
         </div>
-        <div className="mt-5 flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mt-auto flex flex-col items-start gap-4 pt-6 sm:flex-row sm:items-end sm:justify-between">
           <p className="text-sm leading-relaxed text-fg-muted">
             {current ? (
               <>
@@ -166,7 +166,8 @@ function QuoteCard() {
   const [i, setI] = usePersist<number>("quoteIdx", 0)
   const q = QUOTES[i % QUOTES.length]
   return (
-    <Card className="relative p-6">
+    <Card className="relative overflow-hidden p-6 sm:p-7">
+      <div className="hero-glow pointer-events-none absolute inset-0 opacity-30" />
       <Button
         variant="ghost"
         size="icon-sm"
@@ -176,17 +177,19 @@ function QuoteCard() {
       >
         <RefreshCw />
       </Button>
-      <div className="text-xs font-semibold tracking-widest text-fg-muted uppercase">Цитата дня</div>
-      <motion.blockquote
-        key={i}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: EASE }}
-        className="mt-3 text-[15px] leading-relaxed font-medium text-balance"
-      >
-        «{q.t}»
-      </motion.blockquote>
-      <div className="mt-3 text-xs text-fg-muted">— {q.a}</div>
+      <div className="relative">
+        <div className="text-xs font-semibold tracking-widest text-accent-text uppercase">Цитата дня</div>
+        <motion.blockquote
+          key={i}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: EASE }}
+          className="mt-3 max-w-3xl text-lg leading-relaxed font-medium text-balance sm:text-xl"
+        >
+          «{q.t}»
+        </motion.blockquote>
+        <div className="mt-3 text-sm text-fg-muted">— {q.a}</div>
+      </div>
     </Card>
   )
 }
@@ -277,13 +280,10 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
         </Button>
       </motion.div>
 
-      {/* bento: goal (2/3) + right column with streak & quote (1/3) */}
+      {/* bento: goal (2/3) + streak (1/3) — paired so the goal card stays compact */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <GoalCard roadmaps={roadmaps} onOpen={() => setTab("p_priority")} />
-        <div className="flex flex-col gap-4">
-          <StreakCard />
-          <QuoteCard />
-        </div>
+        <StreakCard />
       </motion.div>
 
       {/* priorities + deadlines — half-width each so names have room */}
@@ -338,6 +338,11 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
             )}
           </motion.div>
         </Card>
+      </motion.div>
+
+      {/* quote of the day — full-width banner */}
+      <motion.div variants={fadeUp} className="mt-4">
+        <QuoteCard />
       </motion.div>
 
       {/* progress summary */}

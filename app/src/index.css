@@ -90,6 +90,13 @@ html[data-theme="light"] {
   color-scheme: light;
 }
 
+html {
+  /* Reserve the scrollbar gutter so pages that toggle between scrolling and
+     non-scrolling (e.g. onboarding screens) don't shift horizontally. No-op on
+     mobile overlay scrollbars. */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   background: var(--color-bg);
   color: var(--color-fg);

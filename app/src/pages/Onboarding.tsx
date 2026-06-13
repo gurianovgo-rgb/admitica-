@@ -1507,12 +1507,11 @@ export default function Onboarding({ onDone }: OnboardingProps) {
         />
       </div>
 
+      {/* Top-aligned, stable container. Centering for the welcome / AI-processing
+          screens lives on the keyed motion.div itself, so it travels with that
+          screen and never re-flows the still-exiting one (no teleport on 1↔2 / 11↔12). */}
       <div
-        className={cn(
-          "relative mx-auto flex min-h-dvh w-full flex-col px-5 pt-10 pb-12 sm:px-6",
-          screen === 13 ? "max-w-5xl" : "max-w-xl",
-          (screen === 1 || screen === 12) && "justify-center",
-        )}
+        className={cn("relative mx-auto w-full px-5 pt-10 pb-12 sm:px-6", screen === 13 ? "max-w-5xl" : "max-w-xl")}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -1525,6 +1524,9 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 : { opacity: 0, y: -10, transition: { duration: 0.2, ease: EASE } }
             }
             transition={{ duration: 0.28, ease: EASE }}
+            className={cn(
+              (screen === 1 || screen === 12) && "flex min-h-[calc(100dvh-5.5rem)] flex-col justify-center",
+            )}
           >
             {renderScreen()}
           </motion.div>

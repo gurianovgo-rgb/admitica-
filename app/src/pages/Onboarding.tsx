@@ -47,6 +47,13 @@ import { cn } from "@/lib/utils"
 const EASE = [0.16, 1, 0.3, 1] as const
 const LETTERS = "Admitica".split("")
 
+/* ⚠️ TEMPORARY (legal / personal data): the name input on the first screen is
+   disabled so we don't collect a personal name. Everyone enters as "Гость".
+   To restore name collection: set COLLECT_NAME = true.
+   Tracked in README → «Временные правки — обязательно откатить». */
+const COLLECT_NAME: boolean = false
+const GUEST_NAME = "Гость"
+
 /* In-screen entrance is intentionally a no-op: the screen-level AnimatePresence
    transition already animates each screen in as a whole. A second per-card
    stagger/fade on top of it read as a "double flip" and fought OptionCard's CSS
@@ -675,7 +682,8 @@ export default function Onboarding({ onDone }: OnboardingProps) {
   const next = () => setScreen((s) => Math.min(13, s + 1))
 
   const submitName = () => {
-    const n = nameDraft.trim()
+    // TEMP: while COLLECT_NAME is off, everyone is "Гость" (see top of file / README)
+    const n = COLLECT_NAME ? nameDraft.trim() : GUEST_NAME
     if (!n) return
     setProfile((p) => ({ ...p, name: n }))
     burst(window.innerWidth / 2, window.innerHeight / 2)
@@ -833,23 +841,40 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                   transition={{ duration: 0.4, ease: EASE }}
                   className="mt-10 flex w-full max-w-sm flex-col items-stretch gap-4"
                 >
-                  <div>
-                    <div className="text-lg font-semibold">Привет! Как тебя зовут?</div>
-                    <div className="mt-1.5 text-sm text-fg-muted">Мы персонализируем всё под тебя</div>
-                  </div>
-                  <Input
-                    autoFocus
-                    value={nameDraft}
-                    onChange={(e) => setNameDraft(e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s'-]/g, ""))}
-                    onKeyDown={(e) => e.key === "Enter" && submitName()}
-                    placeholder="Твоё имя"
-                    autoComplete="off"
-                    className="h-12 rounded-xl text-center text-base"
-                    aria-label="Твоё имя"
-                  />
-                  <Button size="xl" onClick={submitName} disabled={!nameDraft.trim()}>
-                    Начать <ArrowRight />
-                  </Button>
+                  {/* TEMP: name input hidden (legal). Restore by setting COLLECT_NAME = true. */}
+                  {COLLECT_NAME ? (
+                    <>
+                      <div>
+                        <div className="text-lg font-semibold">Привет! Как тебя зовут?</div>
+                        <div className="mt-1.5 text-sm text-fg-muted">Мы персонализируем всё под тебя</div>
+                      </div>
+                      <Input
+                        autoFocus
+                        value={nameDraft}
+                        onChange={(e) => setNameDraft(e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s'-]/g, ""))}
+                        onKeyDown={(e) => e.key === "Enter" && submitName()}
+                        placeholder="Твоё имя"
+                        autoComplete="off"
+                        className="h-12 rounded-xl text-center text-base"
+                        aria-label="Твоё имя"
+                      />
+                      <Button size="xl" onClick={submitName} disabled={!nameDraft.trim()}>
+                        Начать <ArrowRight />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <div className="text-lg font-semibold">Твой путь к поступлению в Европу</div>
+                        <div className="mt-1.5 text-sm text-fg-muted">
+                          Подберём программы, гранты и дедлайны под твои цели
+                        </div>
+                      </div>
+                      <Button size="xl" onClick={submitName}>
+                        Начать <ArrowRight />
+                      </Button>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

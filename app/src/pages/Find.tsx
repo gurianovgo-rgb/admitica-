@@ -31,7 +31,7 @@ const cardStagger = {
 /* ---------- types ---------- */
 type Kind = "uni" | "grant" | "intern"
 
-/** Loose view over the catalog union — mirrors the duck-typed legacy access. */
+/** Loose view over the catalog union – mirrors the duck-typed legacy access. */
 type CatalogItem = AnyProgram & Partial<University> & Partial<Grant> & Partial<Internship>
 
 interface Filters {
@@ -47,7 +47,7 @@ interface Filters {
 
 type ListFilterKey = "degree" | "funding" | "format"
 
-/* Карточка результата и дедлайн-бейдж — общие с «Мои программы» (@/components/ProgramCard) */
+/* Карточка результата и дедлайн-бейдж – общие с «Мои программы» (@/components/ProgramCard) */
 
 /* ---------- filter panel ---------- */
 function FilterGroup({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {

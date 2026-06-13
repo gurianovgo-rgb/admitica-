@@ -3,7 +3,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Segmented pill control — the one canonical incarnation
+ * Segmented pill control – the one canonical incarnation
  * (track bg-surface p-1; active option = teal fill with glow).
  */
 function Segmented<T extends string>({

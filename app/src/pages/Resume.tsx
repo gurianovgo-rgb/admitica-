@@ -35,7 +35,7 @@ const initialAchievements: Achievement[] = [
   },
   {
     id: "a2",
-    title: "Стажировка в EY Tashkent — Audit",
+    title: "Стажировка в EY Tashkent – Audit",
     org: "EY · Лето 2024 · 6 недель",
     skills: ["finance", "excel", "audit"],
     desc: "Подготовил 14 рабочих файлов для аудита банковского сектора. Прошёл внутренний тренинг IFRS.",
@@ -56,7 +56,7 @@ interface ChatMsg {
   suggestion?: DraftAchievement
 }
 
-/** Editing draft — skills can be a comma string (form input) or an array (existing item). */
+/** Editing draft – skills can be a comma string (form input) or an array (existing item). */
 interface EditDraft {
   id?: string
   title: string
@@ -214,7 +214,7 @@ export default function Resume() {
   const [msgs, setMsgs] = usePersist<ChatMsg[]>("chat_v2", [
     {
       from: "ai",
-      txt: "Привет! Я помогу собрать сильное резюме. Расскажите про достижение — олимпиада, стажировка, проект, лидерская роль и т.д. Я задам пару уточнений и оформлю это в готовый пункт CV.",
+      txt: "Привет! Я помогу собрать сильное резюме. Расскажите про достижение – олимпиада, стажировка, проект, лидерская роль и т.д. Я задам пару уточнений и оформлю это в готовый пункт CV.",
     },
   ])
   const [input, setInput] = useState("")
@@ -238,7 +238,7 @@ export default function Resume() {
     setImprovingId(a.id)
     try {
       const reply = await window.ai.complete(
-        `Ты эксперт по резюме для поступления в европейские университеты. Перепиши пункт CV сильнее: активные глаголы, конкретика, метрики (если их нет — аккуратно усили формулировку, не выдумывая ложных цифр). Верни ТОЛЬКО JSON: {"title":"...","org":"...","desc":"1-2 предложения","skills":["3-4 английских тега"]}.
+        `Ты эксперт по резюме для поступления в европейские университеты. Перепиши пункт CV сильнее: активные глаголы, конкретика, метрики (если их нет – аккуратно усили формулировку, не выдумывая ложных цифр). Верни ТОЛЬКО JSON: {"title":"...","org":"...","desc":"1-2 предложения","skills":["3-4 английских тега"]}.
 
 Пункт:
 Название: ${a.title}
@@ -279,7 +279,7 @@ export default function Resume() {
     setCvFeedback(null)
     try {
       const cv = achievements
-        .map((a, i) => `${i + 1}. ${a.title} — ${a.org}. ${a.desc} [${(a.skills || []).join(", ")}]`)
+        .map((a, i) => `${i + 1}. ${a.title} – ${a.org}. ${a.desc} [${(a.skills || []).join(", ")}]`)
         .join("\n")
       const reply = await window.ai.complete(
         `Ты выступаешь в роли: «${reviewerRole}». Оцени CV кандидата с позиции этой роли. Дай 3-4 замечания в JSON-массиве объектов {"focus":"короткий ярлык (1-3 слова)","txt":"конкретное замечание 1-2 предложения"}. Сначала сильные стороны (1), затем что улучшить (2-3). Только JSON, без markdown.
@@ -315,7 +315,7 @@ ${cv}`,
     setTurnCount(nextTurn)
 
     try {
-      // After 2 user replies — generate suggestion. Otherwise — clarifying question.
+      // After 2 user replies – generate suggestion. Otherwise – clarifying question.
       if (nextTurn >= 2) {
         const reply = await window.ai.complete(
           `Ты помогаешь собрать резюме для европейских университетов. На основе диалога оформи одно достижение в JSON: {"title":"короткое название","org":"организация и дата","desc":"1-2 предложения с метриками","skills":["3 английских тега"]}. Только JSON, без markdown.
@@ -330,7 +330,7 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
             ...prev,
             {
               from: "ai",
-              txt: "Я оформил это в готовый пункт резюме. Проверьте — можно сразу добавить или подправить:",
+              txt: "Я оформил это в готовый пункт резюме. Проверьте – можно сразу добавить или подправить:",
               suggestion: obj,
             },
           ])
@@ -341,13 +341,13 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
             ...prev,
             {
               from: "ai",
-              txt: "Спасибо! Чтобы оформить пункт, мне нужен ещё один момент: какой был конкретный результат — число, процент, место?",
+              txt: "Спасибо! Чтобы оформить пункт, мне нужен ещё один момент: какой был конкретный результат – число, процент, место?",
             },
           ])
         }
       } else {
         const reply = await window.ai.complete(
-          `Ты помогаешь собрать резюме. Пользователь рассказал о достижении. Задай ОДИН короткий уточняющий вопрос (1-2 предложения), чтобы добавить конкретику — числа, метрики, роль. Не повторяйся, не благодари.
+          `Ты помогаешь собрать резюме. Пользователь рассказал о достижении. Задай ОДИН короткий уточняющий вопрос (1-2 предложения), чтобы добавить конкретику – числа, метрики, роль. Не повторяйся, не благодари.
 
 Сообщение: ${userMsg}`,
         )
@@ -356,7 +356,7 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
     } catch {
       // Offline fallback
       const fallbacks = [
-        "Какой конкретный результат — число, %, место? Это сделает пункт сильнее.",
+        "Какой конкретный результат – число, %, место? Это сделает пункт сильнее.",
         "Какая была ваша личная роль и что вы делали в команде?",
       ]
       setMsgs((prev) => [...prev, { from: "ai", txt: fallbacks[Math.min(nextTurn - 1, fallbacks.length - 1)] }])
@@ -381,7 +381,7 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
     setMsgs([
       {
         from: "ai",
-        txt: "Поехали заново! Расскажите про любое достижение — академическое, профессиональное или общественное.",
+        txt: "Поехали заново! Расскажите про любое достижение – академическое, профессиональное или общественное.",
       },
     ])
     setTurnCount(0)
@@ -430,7 +430,7 @@ ${newMsgs.map((m) => `${m.from}: ${m.txt}`).join("\n")}`,
               <div className="min-w-0">
                 <strong className="text-sm font-semibold">AI-помощник</strong>
                 {/* без truncate: на узком экране подпись переносится, а не обрезается */}
-                <div className="mt-0.5 text-xs text-fg-muted">Расскажите про достижение — AI оформит пункт CV</div>
+                <div className="mt-0.5 text-xs text-fg-muted">Расскажите про достижение – AI оформит пункт CV</div>
               </div>
               <Button variant="ghost" size="sm" className="shrink-0" onClick={resetChat}>
                 <RefreshCw /> Сбросить

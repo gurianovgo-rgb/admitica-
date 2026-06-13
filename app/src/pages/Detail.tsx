@@ -138,7 +138,7 @@ function RichBlockBody({ block }: { block: RichBlock }) {
               ))}
             </ul>
           )
-        // table — horizontal scroll on narrow screens
+        // table – horizontal scroll on narrow screens
         return (
           <div key={i} className="-mx-1 overflow-x-auto">
             <table className="w-full border-collapse text-[13px]">
@@ -290,7 +290,7 @@ export default function Detail({
   const uniGrants = "program" in it ? grantsForUni(it) : []
   const content = UNI_CONTENT[it.id]
 
-  // Full report blocks are code-split — load on demand for this uni.
+  // Full report blocks are code-split – load on demand for this uni.
   const [blocks, setBlocks] = useState<RichBlock[] | null>(null)
   useEffect(() => {
     let alive = true
@@ -333,7 +333,7 @@ export default function Detail({
           { k: "Степень", v: it.degree },
           { k: "Направление", v: it.field },
           { k: "Стоимость", v: it.tuition },
-          { k: "Стипендии", v: it.scholarship ? "Доступны" : "—" },
+          { k: "Стипендии", v: it.scholarship ? "Доступны" : "–" },
         ]
       : "funding" in it
         ? [

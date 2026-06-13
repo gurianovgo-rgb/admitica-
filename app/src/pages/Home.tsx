@@ -26,12 +26,12 @@ const stagger = {
 
 /* ---------- content (same as legacy home.jsx) ---------- */
 const QUOTES = [
-  { t: "Лучшее время посадить дерево было 20 лет назад. Второе лучшее время — сейчас.", a: "Китайская пословица" },
+  { t: "Лучшее время посадить дерево было 20 лет назад. Второе лучшее время – сейчас.", a: "Китайская пословица" },
   { t: "Вы становитесь тем, во что верите.", a: "Опра Уинфри" },
-  { t: "Образование — это самое мощное оружие, которым вы можете изменить мир.", a: "Нельсон Мандела" },
-  { t: "Не бойтесь медленно идти — бойтесь стоять на месте.", a: "Конфуций" },
-  { t: "Качество — это не действие, это привычка.", a: "Аристотель" },
-  { t: "Дисциплина — это мост между целями и достижениями.", a: "Джим Рон" },
+  { t: "Образование – это самое мощное оружие, которым вы можете изменить мир.", a: "Нельсон Мандела" },
+  { t: "Не бойтесь медленно идти – бойтесь стоять на месте.", a: "Конфуций" },
+  { t: "Качество – это не действие, это привычка.", a: "Аристотель" },
+  { t: "Дисциплина – это мост между целями и достижениями.", a: "Джим Рон" },
 ]
 
 /* ---------- tiny count-up number ---------- */
@@ -84,7 +84,7 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
       <div className="relative flex h-full flex-col">
         <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-fg-muted uppercase">
           <Sparkles className="size-3.5 text-accent-text" />
-          Цель — поступление
+          Цель – поступление
         </div>
         <div className="mt-3 text-6xl font-bold tracking-tight sm:text-7xl">
           <CountUp to={pct} suffix="%" />
@@ -104,7 +104,7 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
                 Сейчас: <span className="font-semibold text-fg">{current.item.name}</span>
                 <br />
                 Этап {Math.min(current.p.done + 1, current.p.total)} из {current.p.total}
-                {current.p.currentName ? ` — ${current.p.currentName}` : " — всё выполнено"}
+                {current.p.currentName ? ` – ${current.p.currentName}` : " – всё выполнено"}
               </>
             ) : (
               "Добавь вуз в приоритеты, чтобы начать отслеживать прогресс."
@@ -157,7 +157,7 @@ function StreakCard() {
               <span className="text-4xl font-bold tracking-tight text-warning">{streak}</span>
               <span className="text-sm text-fg-muted">{pluralDay(streak)} подряд</span>
             </div>
-            <div className="mt-0.5 text-xs text-fg-faint">Так держать — заходи каждый день</div>
+            <div className="mt-0.5 text-xs text-fg-faint">Так держать – заходи каждый день</div>
           </div>
         </div>
 
@@ -225,7 +225,7 @@ function QuoteCard() {
         >
           «{q.t}»
         </motion.blockquote>
-        <div className="mt-3 text-sm text-fg-muted">— {q.a}</div>
+        <div className="mt-3 text-sm text-fg-muted">– {q.a}</div>
       </div>
     </Card>
   )
@@ -277,7 +277,7 @@ function ListRow({
   )
 }
 
-/* DeadlineBadge — общий компонент (@/components/ProgramCard) */
+/* DeadlineBadge – общий компонент (@/components/ProgramCard) */
 
 /* ---------- page ---------- */
 export interface HomeProps {
@@ -309,7 +309,7 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
             <span className="text-accent-text">.</span>
           </h1>
           <p className="mt-3 max-w-xl text-sm text-fg-muted sm:text-base">
-            Твой путь к поступлению в Европу — программы, дедлайны и прогресс в одном месте.
+            Твой путь к поступлению в Европу – программы, дедлайны и прогресс в одном месте.
           </p>
         </div>
         <Button onClick={() => setTab("find")} className="max-sm:hidden">
@@ -317,13 +317,13 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
         </Button>
       </motion.div>
 
-      {/* bento: goal (2/3) + streak (1/3) — paired so the goal card stays compact */}
+      {/* bento: goal (2/3) + streak (1/3) – paired so the goal card stays compact */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <GoalCard roadmaps={roadmaps} onOpen={() => setTab("p_priority")} />
         <StreakCard />
       </motion.div>
 
-      {/* priorities + deadlines — half-width each so names have room */}
+      {/* priorities + deadlines – half-width each so names have room */}
       <motion.div variants={fadeUp} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* priorities */}
         <Card className="p-4 sm:p-5">
@@ -377,7 +377,7 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
         </Card>
       </motion.div>
 
-      {/* quote of the day — full-width banner */}
+      {/* quote of the day – full-width banner */}
       <motion.div variants={fadeUp} className="mt-4">
         <QuoteCard />
       </motion.div>
@@ -394,14 +394,14 @@ export default function Home({ name, priorities, savedIds, roadmaps, setTab, ope
                 body:
                   savedIds.length < 5
                     ? "Рекомендуем сохранить 8–12 программ для shortlist"
-                    : "Хороший shortlist — теперь приоритизируйте",
+                    : "Хороший shortlist – теперь приоритизируйте",
                 bar: Math.min(100, savedIds.length * 10),
                 tab: "find" as Tab,
               },
               {
                 label: "Эссе",
                 lead: "2 черновика",
-                body: "Personal Statement для Bocconi — 760/1000 слов. Откройте редактор, чтобы продолжить.",
+                body: "Personal Statement для Bocconi – 760/1000 слов. Откройте редактор, чтобы продолжить.",
                 tab: "essay" as Tab,
               },
               {

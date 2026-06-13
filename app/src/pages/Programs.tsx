@@ -30,7 +30,7 @@ const isUni = (p: AnyProgram): p is University => "program" in p
 const isGrant = (p: AnyProgram): p is Grant => "funding" in p
 const isIntern = (p: AnyProgram): p is Internship => "role" in p
 
-/* Карточка программы, дедлайн-бейдж и сегмент-контрол — общие компоненты
+/* Карточка программы, дедлайн-бейдж и сегмент-контрол – общие компоненты
    (@/components/ProgramCard, @/components/ui/segmented) */
 
 function EmptyState({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
@@ -111,7 +111,7 @@ function Saved({
 
 /* Sink → Float pickup (cinematic, physical):
    phase 1 sinks the card into the surface, phase 2 floats it above the list,
-   phase 3 lands it without a bounce. Phases animate the INNER Card element —
+   phase 3 lands it without a bounce. Phases animate the INNER Card element –
    the drag gesture owns the Reorder.Item's own y motion value, so animating
    the item itself would fight the pointer. */
 const FLOAT_SHADOW = "0 20px 48px -8px rgba(0,0,0,0.16), 0 6px 16px -4px rgba(0,0,0,0.09)"
@@ -151,13 +151,13 @@ function PriorityRow({
   const [scope, animate] = useAnimate()
   const [isDragging, setIsDragging] = useState(false)
   // Framer only starts a drag session after 3px of pointer travel, so a plain
-  // click/tap on the handle gets NO onDragStart/onDragEnd — these refs let a
+  // click/tap on the handle gets NO onDragStart/onDragEnd – these refs let a
   // pointerup fallback land the card and cancel a pending Float phase.
   const pickupGen = useRef(0)
   const pickedUp = useRef(false)
   const dragActive = useRef(false)
   // The browser fires the post-drag click on the common ancestor of the down/up
-  // targets — the row header — which would toggle the roadmap. Swallow it.
+  // targets – the row header – which would toggle the roadmap. Swallow it.
   const suppressClick = useRef(false)
 
   const startDrag = async (e: React.PointerEvent) => {
@@ -166,10 +166,10 @@ function PriorityRow({
     pickedUp.current = true
     dragControls.start(e)
     const gen = ++pickupGen.current
-    // Phase 1 — Sink: the card presses into the surface before lift-off
+    // Phase 1 – Sink: the card presses into the surface before lift-off
     await animate(scope.current, { y: 6, scale: 0.97 }, { duration: 0.08, ease: [0.55, 0, 1, 0.45] })
-    if (pickupGen.current !== gen) return // already settled (fast release) — don't float
-    // Phase 2 — Float: hovers above the list with a slight overshoot
+    if (pickupGen.current !== gen) return // already settled (fast release) – don't float
+    // Phase 2 – Float: hovers above the list with a slight overshoot
     animate(
       scope.current,
       { y: -4, scale: 1.04, boxShadow: FLOAT_SHADOW },
@@ -185,13 +185,13 @@ function PriorityRow({
     setTimeout(() => {
       suppressClick.current = false
     }, 0)
-    // Phase 3 — Drop: quiet, authoritative landing, no bounce
+    // Phase 3 – Drop: quiet, authoritative landing, no bounce
     await animate(scope.current, { y: 0, scale: 1, boxShadow: REST_SHADOW }, { duration: 0.28, ease: SETTLE_EASE })
     // hand the resting shadow back to the theme stylesheet (light theme styles cards itself)
     if (scope.current) scope.current.style.boxShadow = ""
   }
 
-  // A press that never crossed the 3px drag threshold gets no onDragEnd —
+  // A press that never crossed the 3px drag threshold gets no onDragEnd –
   // land the card from the handle's own pointerup/pointercancel instead.
   const settleIfNoDrag = () => {
     if (pickedUp.current && !dragActive.current) settle()
@@ -426,7 +426,7 @@ function Priority({
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [activeStage, setActiveStage] = useState<string | null>(null) // stage id within expanded roadmap
 
-  // Keyboard reorder (drag handle ArrowUp/ArrowDown) — by id, not index,
+  // Keyboard reorder (drag handle ArrowUp/ArrowDown) – by id, not index,
   // so unresolved priority ids can never shift the wrong row.
   const move = (id: string, dir: number) => {
     const arr = [...priorities]
@@ -483,7 +483,7 @@ function Priority({
   return (
     <div>
       <motion.div variants={fadeUp} className="mb-4 text-[13px] text-fg-muted">
-        Нажмите на вуз, чтобы раскрыть его роадмап. Перетаскивайте карточки за ручку — топ-3 видны на главной.
+        Нажмите на вуз, чтобы раскрыть его роадмап. Перетаскивайте карточки за ручку – топ-3 видны на главной.
       </motion.div>
       <span id="prio-dnd-hint" className="sr-only">
         Перетащите мышью или используйте стрелки вверх и вниз на ручке, чтобы изменить позицию в списке
@@ -563,7 +563,7 @@ export default function Programs({
   setRoadmaps,
   openDetail,
 }: ProgramsProps) {
-  // p_roadmap was merged into priorities in legacy — anything not p_saved shows priorities.
+  // p_roadmap was merged into priorities in legacy – anything not p_saved shows priorities.
   // Derived from the app tab so the sidebar highlight always matches the page.
   const view: ProgramsView = subTab === "p_saved" ? "p_saved" : "p_priority"
 

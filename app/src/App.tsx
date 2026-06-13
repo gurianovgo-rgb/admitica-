@@ -15,17 +15,17 @@ import Essay from "@/pages/Essay"
 import Resume from "@/pages/Resume"
 
 /**
- * App shell — same state machine and storage keys as the legacy app.jsx:
+ * App shell – same state machine and storage keys as the legacy app.jsx:
  * tab routing, detail overlay, settings dialog, onboarding gate.
  */
 export default function App() {
-  // Theme lives in a NEW key (admitica.theme) — existing keys untouched.
+  // Theme lives in a NEW key (admitica.theme) – existing keys untouched.
   const [theme, setTheme] = usePersist<"dark" | "light">("theme", "dark")
   useEffect(() => {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
-  // Same storage keys and defaults as the legacy desktop app — DO NOT change.
+  // Same storage keys and defaults as the legacy desktop app – DO NOT change.
   const [name, setName] = usePersist<string>("name", "")
   const [plan, setPlan] = usePersist<string>("plan", "Free")
   const [savedIds, setSavedIds] = usePersist<string[]>("savedIds", ["u1", "u2", "g1", "g2", "i1"])
@@ -62,7 +62,7 @@ export default function App() {
   }
 
   const addRoadmap = (it: AnyProgram) => {
-    // Roadmaps live inside Priorities — make sure the item is there
+    // Roadmaps live inside Priorities – make sure the item is there
     if (!priorities.includes(it.id)) setPriorities([...priorities, it.id])
     if (!savedIds.includes(it.id)) setSavedIds([...savedIds, it.id])
     if (roadmaps.find((r) => r.itemId === it.id)) return
@@ -76,7 +76,7 @@ export default function App() {
     location.reload()
   }
 
-  // Onboarding gate — same condition as legacy (no name yet)
+  // Onboarding gate – same condition as legacy (no name yet)
   if (!name) {
     return (
       <ToastProvider>

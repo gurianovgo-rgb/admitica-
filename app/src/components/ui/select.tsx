@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-/** Styled native select — options follow the theme via color-scheme. */
+/** Styled native select – options follow the theme via color-scheme. */
 function Select({ className, children, ...props }: React.ComponentProps<"select">) {
   return (
     <div className={cn("relative", className)}>

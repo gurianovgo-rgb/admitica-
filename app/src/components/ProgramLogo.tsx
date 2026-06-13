@@ -9,8 +9,8 @@ interface LogoItem {
 
 /**
  * Program logo tile.
- * Desktop (lg+): colored tile with the initial letter — the desktop language.
- * Below lg: country flag on a tinted surface — the legacy mobile FlagLogo
+ * Desktop (lg+): colored tile with the initial letter – the desktop language.
+ * Below lg: country flag on a tinted surface – the legacy mobile FlagLogo
  * look (fill = brand color at ~8% alpha, border at ~20%).
  * Pass size/radius/text classes via className (e.g. "size-9 rounded-xl text-sm font-semibold").
  */

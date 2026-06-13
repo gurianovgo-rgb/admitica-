@@ -47,7 +47,7 @@ export interface UniContent {
 }
 
 export const UNI_CONTENT: Record<string, UniContent> = {
-  // ── Università Bocconi — full analyst profile ──────────────────────
+  // ── Università Bocconi – full analyst profile ──────────────────────
   u1: {
     chips: [
       "Основан в 1902",

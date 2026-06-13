@@ -3,7 +3,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Section kicker / micro-label — the single canonical treatment for
+ * Section kicker / micro-label – the single canonical treatment for
  * uppercase eyebrow labels across the app.
  * Accent variant is reserved for AI/feature callouts.
  */

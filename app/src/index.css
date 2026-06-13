@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 
 /* ============================================================
-   Admitica design tokens — teal accent.
+   Admitica design tokens – teal accent.
    Dark theme is the default; light theme is activated with
    [data-theme="light"] on <html>.
 
@@ -42,7 +42,7 @@
   --color-fg-muted: #99a3a1;
   --color-fg-faint: #5e6766;
 
-  /* Teal accent — bright on dark surfaces */
+  /* Teal accent – bright on dark surfaces */
   --color-accent: #2dd4bf;
   --color-accent-soft: rgba(45, 212, 191, 0.12);
   --color-accent-fg: #04201d;
@@ -53,7 +53,7 @@
   --color-positive: #4ade80;
   --color-warning: #fbbf24;
   --color-danger: #f87171;
-  /* text on a danger fill — dark danger is a light red, so white text fails contrast */
+  /* text on a danger fill – dark danger is a light red, so white text fails contrast */
   --color-danger-fg: #2a0a0a;
 }
 
@@ -115,7 +115,7 @@ html, body {
     radial-gradient(600px 320px at 18% 0%, var(--color-accent-glow), transparent 70%),
     radial-gradient(480px 260px at 85% 12%, rgba(255, 255, 255, 0.05), transparent 70%);
 }
-/* On light surfaces the white radial is invisible — keep only the (already
+/* On light surfaces the white radial is invisible – keep only the (already
    muted) teal glow so the hero stays clean. */
 [data-theme="light"] .hero-glow {
   background: radial-gradient(600px 320px at 18% 0%, var(--color-accent-glow), transparent 70%);
@@ -128,7 +128,7 @@ html, body {
     0 12px 32px -20px rgba(13, 26, 24, 0.18);
 }
 
-/* Range sliders (GPA, budget, tuition filter) — system track + accent thumb
+/* Range sliders (GPA, budget, tuition filter) – system track + accent thumb
    instead of the per-browser UA defaults */
 input[type="range"] {
   appearance: none;

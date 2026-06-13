@@ -2,7 +2,7 @@ import * as React from "react"
 import { AnimatePresence, motion } from "framer-motion"
 
 /**
- * Minimal toast — API mirrors the legacy ToastCtx (a single `show(message)`
+ * Minimal toast – API mirrors the legacy ToastCtx (a single `show(message)`
  * function, auto-hides after 2.5s).
  */
 const ToastCtx = React.createContext<(msg: string) => void>(() => {})

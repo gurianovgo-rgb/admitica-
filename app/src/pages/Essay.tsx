@@ -39,7 +39,7 @@ const ESSAY_PROMPTS: EssayPrompt[] = [
   { id: "mot_hec", uniId: "u3", target: "HEC · Motivation Letter" },
 ]
 
-const SAMPLE_ESSAY = `My fascination with economics did not start in a lecture hall. It began on a Saturday afternoon in my mother's small bakery in Tashkent, watching her decide whether to raise the price of a loaf by twenty cents. I was eleven, and I already understood that this number could feed my brother for a week — or send our regular customer back home empty-handed. That moment planted a question I have been chasing ever since: how do markets, so abstract on paper, translate into the everyday choices of real families?
+const SAMPLE_ESSAY = `My fascination with economics did not start in a lecture hall. It began on a Saturday afternoon in my mother's small bakery in Tashkent, watching her decide whether to raise the price of a loaf by twenty cents. I was eleven, and I already understood that this number could feed my brother for a week – or send our regular customer back home empty-handed. That moment planted a question I have been chasing ever since: how do markets, so abstract on paper, translate into the everyday choices of real families?
 
 At Lyceum №1, I built my schedule around this question. I won the regional Olympiad in Mathematics, took two extracurricular courses in microeconomics through a partnership with HSE, and led a research project on inflation expectations among small business owners in our city. I learned that good economics requires not just elegant equations but also the humility to listen to the people behind the data.`
 
@@ -55,7 +55,7 @@ const initialDrafts = (): Record<string, string> => {
       const s = localStorage.getItem("admitica.essay_" + p.id)
       if (s != null) saved = JSON.parse(s) as string
     } catch {
-      /* corrupted draft — ignore */
+      /* corrupted draft – ignore */
     }
     const isBocconi = p.id === ESSAY_PROMPTS[0].id
     if (saved != null && !(isBocconi && !String(saved).trim())) map[p.id] = saved
@@ -88,7 +88,7 @@ const INITIAL_FEEDBACK: FeedbackItem[] = [
   },
 ]
 
-/* ---------- small pieces (DeadlineBadge — общий, @/components/ProgramCard) ---------- */
+/* ---------- small pieces (DeadlineBadge – общий, @/components/ProgramCard) ---------- */
 function UniTile({ uni }: { uni: University }) {
   return (
     <ProgramLogo item={uni} className="size-10 rounded-xl text-base font-semibold" />
@@ -157,7 +157,7 @@ export default function Essay({ priorities }: EssayProps) {
   const setText = (val: string) => setDrafts((d) => ({ ...d, [draftKey]: val }))
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length
   const target = req ? req.wordLimit : 1000
-  const exportTitle = editing ? `${editing.name} — ${req ? req.type : "Essay"}` : activePrompt.target
+  const exportTitle = editing ? `${editing.name} – ${req ? req.type : "Essay"}` : activePrompt.target
 
   // Priority universities for the bank
   const bankUnis = priorities.map(essayUniById).filter((u): u is University => Boolean(u))
@@ -250,14 +250,14 @@ ${text}`,
                 <Star className="mx-auto size-9 text-fg-faint" />
                 <h2 className="mt-4 text-lg font-semibold">В приоритетах пока нет вузов</h2>
                 <p className="mx-auto mt-2 max-w-md text-sm text-fg-muted">
-                  Добавьте университеты в приоритеты — для каждого здесь появится эссе с требованиями программы
+                  Добавьте университеты в приоритеты – для каждого здесь появится эссе с требованиями программы
                 </p>
               </div>
             </Card>
           ) : (
             <>
               <div className="mb-4 text-[13px] text-fg-muted">
-                Эссе под каждый вуз из ваших приоритетов — с требованиями конкретной программы.
+                Эссе под каждый вуз из ваших приоритетов – с требованиями конкретной программы.
               </div>
               <motion.div
                 variants={stagger}

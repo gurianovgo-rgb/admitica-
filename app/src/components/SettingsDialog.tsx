@@ -39,7 +39,7 @@ const stagger = {
 
 const PLANS = ["Free", "Pro", "Premium"]
 
-/* Notification rows — static "on/off" demo switches, как в легаси */
+/* Notification rows – static "on/off" demo switches, как в легаси */
 const NOTIFICATIONS: { label: string; on: boolean }[] = [
   { label: "Дедлайны программ", on: true },
   { label: "Ежедневный стрик", on: true },

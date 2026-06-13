@@ -1,5 +1,5 @@
 // Types for the legacy global modules shared with the live static site.
-// Source of truth stays in ../data/programs.js and ../src/roadmapData.js —
+// Source of truth stays in ../data/programs.js and ../src/roadmapData.js –
 // the new app imports them as side-effect scripts and reads the globals.
 
 export interface University {
@@ -89,7 +89,7 @@ export interface EssayRequirements {
   tips: string[]
 }
 
-// Stored under admitica.achievements (src/resume.jsx) — keep the shape byte-compatible
+// Stored under admitica.achievements (src/resume.jsx) – keep the shape byte-compatible
 export interface Achievement {
   id: string
   title: string
@@ -115,7 +115,7 @@ declare global {
     buildRoadmapStages: (u: University) => RoadmapStage[]
     ROADMAP_STAGE_COUNT: number
 
-    // src/ai.js — provider-agnostic AI client (OpenRouter / Gemini)
+    // src/ai.js – provider-agnostic AI client (OpenRouter / Gemini)
     ai: {
       complete: (prompt: string, opts?: AiCompleteOptions) => Promise<string>
       extractJson: (text: string) => unknown
@@ -128,7 +128,7 @@ declare global {
     // src/essayReqs.js
     getEssayRequirements: (u: University) => EssayRequirements | null
 
-    // src/downloads.js — DOCX/PDF export (docx + pdfmake from CDN)
+    // src/downloads.js – DOCX/PDF export (docx + pdfmake from CDN)
     getUserName: () => string
     downloadEssayDocx: (title: string, text: string) => void
     downloadEssayPdf: (title: string, text: string) => void

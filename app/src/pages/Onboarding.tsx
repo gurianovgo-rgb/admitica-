@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import {
-  ArrowLeft,
   ArrowRight,
   BookOpen,
   Brain,
@@ -39,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 /* ============================================================
-   Onboarding — full port of the legacy onboarding.html wizard
+   Onboarding – full port of the legacy onboarding.html wizard
    (13 screens) merged with the app's signature letter-fly intro.
    Storage contract is byte-compatible with legacy finishOnboarding().
    ============================================================ */
@@ -50,7 +49,7 @@ const LETTERS = "Admitica".split("")
 /* ⚠️ TEMPORARY (legal / personal data): the name input on the first screen is
    disabled so we don't collect a personal name. Everyone enters as "Гость".
    To restore name collection: set COLLECT_NAME = true.
-   Tracked in README → «Временные правки — обязательно откатить». */
+   Tracked in README → «Временные правки – обязательно откатить». */
 const COLLECT_NAME: boolean = false
 const GUEST_NAME = "Гость"
 
@@ -207,7 +206,7 @@ interface MatchedProgram {
   cost: string
   deadline: string
   reason: string
-  /** Описание вуза — слот под текст в карточке (наполняется из данных). */
+  /** Описание вуза – слот под текст в карточке (наполняется из данных). */
   desc?: string
 }
 
@@ -431,7 +430,7 @@ function OptionCard({
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
       className={cn(
-        // transition border/background only — never opacity (it fought the screen-level fade)
+        // transition border/background only – never opacity (it fought the screen-level fade)
         "relative flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left transition-[border-color,background-color] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
         selected ? "border-accent bg-accent-soft" : "border-border hover:border-accent/40",
         dimmed && "opacity-40",
@@ -544,10 +543,10 @@ function Nav({
   return (
     <div className="mt-7 flex items-center gap-3">
       <Button variant="secondary" size="xl" className="px-5" onClick={onBack}>
-        <ArrowLeft /> Назад
+        Назад
       </Button>
       <Button size="xl" className="flex-1" onClick={onNext} disabled={nextDisabled}>
-        {nextLabel} <ArrowRight />
+        {nextLabel}
       </Button>
     </div>
   )
@@ -584,7 +583,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
   const reduced = useReducedMotion()
   const [screen, setScreen] = useState(1)
 
-  /* screen 1 — letter-fly intro + name */
+  /* screen 1 – letter-fly intro + name */
   const [introPhase, setIntroPhase] = useState(0)
   const [nameDraft, setNameDraft] = useState("")
 
@@ -595,7 +594,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     budget: budgetLabel(35).t,
   }))
 
-  /* UI-only state (legacy never persisted these — kept byte-compatible) */
+  /* UI-only state (legacy never persisted these – kept byte-compatible) */
   const [otherMotivation, setOtherMotivation] = useState("")
   const [otherConcern, setOtherConcern] = useState("")
   const [levelUnknown, setLevelUnknown] = useState(false)
@@ -696,7 +695,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     setScreen(12)
   }
 
-  /* AI screen choreography — same timings as legacy startAI();
+  /* AI screen choreography – same timings as legacy startAI();
      with reduced motion the sequence collapses to a short beat */
   useEffect(() => {
     if (screen !== 12) return
@@ -770,7 +769,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
   }
 
   /* ---------- completion: byte-compatible with legacy finishOnboarding() ----------
-     idsOverride: «Пропустить» передаёт [] — выбор не сохраняется. */
+     idsOverride: «Пропустить» передаёт [] – выбор не сохраняется. */
   const finishOnboarding = (idsOverride?: string[]) => {
     if (doneRef.current) return
     doneRef.current = true
@@ -795,7 +794,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
     onDone(profile.name.trim())
   }
 
-  /* progress chrome — same formula as legacy progressWidth() */
+  /* progress chrome – same formula as legacy progressWidth() */
   const pw = screen < 2 || screen > 11 ? null : 11 + ((screen - 2) * (100 - 11)) / 9
   const lastPw = useRef(11)
   if (pw !== null) lastPw.current = pw
@@ -807,7 +806,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
      ============================================================ */
   const renderScreen = () => {
     switch (screen) {
-      /* -------- SCREEN 1 — name (letter-fly intro merged in) -------- */
+      /* -------- SCREEN 1 – name (letter-fly intro merged in) -------- */
       case 1:
         return (
           <div className="flex w-full flex-col items-center text-center">
@@ -881,7 +880,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 2 — motivation -------- */
+      /* -------- SCREEN 2 – motivation -------- */
       case 2:
         return (
           <div>
@@ -909,7 +908,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 3 — concerns -------- */
+      /* -------- SCREEN 3 – concerns -------- */
       case 3:
         return (
           <div>
@@ -937,7 +936,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 4 — education level -------- */
+      /* -------- SCREEN 4 – education level -------- */
       case 4:
         return (
           <div>
@@ -985,7 +984,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 5 — graduation year -------- */
+      /* -------- SCREEN 5 – graduation year -------- */
       case 5:
         return (
           <div>
@@ -1008,7 +1007,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                 autoFocus
                 value={yearCustom}
                 onChange={(e) => setYearCustom(numFilter(e.target.value))}
-                placeholder="Укажи свой год — например, 2030"
+                placeholder="Укажи свой год – например, 2030"
                 inputMode="numeric"
                 maxLength={4}
                 className="mt-3.5 h-12 rounded-xl"
@@ -1018,7 +1017,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 6 — GPA -------- */
+      /* -------- SCREEN 6 – GPA -------- */
       case 6:
         return (
           <div>
@@ -1071,7 +1070,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 7 — English level + certificates + extra languages -------- */
+      /* -------- SCREEN 7 – English level + certificates + extra languages -------- */
       case 7:
         return (
           <div>
@@ -1183,13 +1182,13 @@ export default function Onboarding({ onDone }: OnboardingProps) {
                           <Input
                             value={row.cert}
                             onChange={(e) => patchLang(row.key, { cert: e.target.value })}
-                            placeholder="Сертификат — например, IELTS / Goethe"
+                            placeholder="Сертификат – например, IELTS / Goethe"
                             className="h-11 rounded-xl"
                           />
                           <Input
                             value={row.score}
                             onChange={(e) => patchLang(row.key, { score: numFilter(e.target.value) })}
-                            placeholder="Балл — например, 7.5"
+                            placeholder="Балл – например, 7.5"
                             inputMode="numeric"
                             className="h-11 rounded-xl"
                           />
@@ -1211,7 +1210,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 8 — field of study -------- */
+      /* -------- SCREEN 8 – field of study -------- */
       case 8:
         return (
           <div>
@@ -1247,7 +1246,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 9 — internships -------- */
+      /* -------- SCREEN 9 – internships -------- */
       case 9:
         return (
           <div>
@@ -1294,7 +1293,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 10 — target countries -------- */
+      /* -------- SCREEN 10 – target countries -------- */
       case 10: {
         const sel = profile.countries ?? []
         const cnt = sel.filter((v) => v !== "any").length
@@ -1365,7 +1364,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
         )
       }
 
-      /* -------- SCREEN 11 — budget -------- */
+      /* -------- SCREEN 11 – budget -------- */
       case 11:
         return (
           <div>
@@ -1423,7 +1422,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 12 — AI processing -------- */
+      /* -------- SCREEN 12 – AI processing -------- */
       case 12:
         return (
           <div className="flex w-full flex-col items-center text-center">
@@ -1472,7 +1471,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
           </div>
         )
 
-      /* -------- SCREEN 13 — results -------- */
+      /* -------- SCREEN 13 – results -------- */
       case 13: {
         const n = savedSel.length
         return (
@@ -1480,7 +1479,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
             <Heading className="max-w-2xl">{displayName}, вот что подошло под твой профиль</Heading>
             <Subtext>Основано на твоих баллах, бюджете и предпочтениях</Subtext>
 
-            {/* Мобайл и планшет: вращающийся барабан — только свайп влево/вправо */}
+            {/* Мобайл и планшет: вращающийся барабан – только свайп влево/вправо */}
             <UniWheel programs={programs} savedSel={savedSel} onToggleSave={toggleProgSave} />
 
             {/* Десктоп: сетка */}
@@ -1526,7 +1525,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
       <div className="hero-glow pointer-events-none fixed inset-0 opacity-50" />
 
       {/* progress chrome (screens 2–11, same widths as legacy);
-          width freezes on the last value while fading out — no backwards jump */}
+          width freezes on the last value while fading out – no backwards jump */}
       <div
         aria-hidden
         className={cn("fixed inset-x-0 top-0 z-20 h-1 bg-fg/8 transition-opacity duration-300", pw === null && "opacity-0")}
@@ -1566,7 +1565,7 @@ export default function Onboarding({ onDone }: OnboardingProps) {
   )
 }
 
-/* ---------- result card (screen 13) — единый размер на барабане и в сетке ---------- */
+/* ---------- result card (screen 13) – единый размер на барабане и в сетке ---------- */
 function ResultCard({
   p,
   on,

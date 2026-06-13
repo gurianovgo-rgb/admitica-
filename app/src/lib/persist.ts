@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 /**
  * Persistent state, byte-compatible with the legacy site:
  * same `admitica.<key>` localStorage keys, same JSON encoding.
- * DO NOT change the prefix or encoding — users already have data there.
+ * DO NOT change the prefix or encoding – users already have data there.
  */
 export function usePersist<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {

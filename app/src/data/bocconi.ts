@@ -330,7 +330,7 @@ export const BOCCONI_BLOCKS: RichBlock[] = [
           ],
           [
             "Law & Legal Studies",
-            "=71",
+            "71",
             "н/д",
             "—"
           ],
@@ -502,7 +502,7 @@ export const BOCCONI_BLOCKS: RichBlock[] = [
           "Social Sciences & Management: #12 в мире (2025), +4 позиции за год",
           "Economics & Econometrics: #17 в мире (2025) — держит позицию 8 лет",
           "Accounting & Finance: #19 в мире (2025)",
-          "Law & Legal Studies: =71 в мире (2025)"
+          "Law & Legal Studies: #71 в мире (2025)"
         ]
       },
       {
@@ -606,7 +606,7 @@ export const BOCCONI_BLOCKS: RichBlock[] = [
           "Кафедра финансов — программа MSc Finance; QS Masters in Finance #11 в мире (2024); QS Accounting & Finance #19",
           "Кафедра экономики — исследовательский институт IGIER; QS Economics & Econometrics #17 в мире; сильна в европейской макроэкономике и публичных финансах",
           "Кафедра менеджмента и технологий — программы BIEM, BSc Management; QS Business & Management #10 в мире",
-          "Юридическая школа — QS Law & Legal Studies =71; член сети THEMIS Law Network; три специализированных LLM",
+          "Юридическая школа — QS Law & Legal Studies #71; член сети THEMIS Law Network; три специализированных LLM",
           "Кафедра социальных и политических наук — 11 активных грантов ERC; BSc International Politics & Government; PhD в публичной политике",
           "Кафедра наук о данных и ИИ — новейшее и быстрорастущее направление; связана с исследовательским центром BIDSA; программы BAI, BEMACS, MSc AI, MSc Data Science"
         ]

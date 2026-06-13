@@ -103,6 +103,8 @@ html, body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* kill the default dark flash when tapping buttons on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::selection { background: var(--color-accent); color: var(--color-accent-fg); }

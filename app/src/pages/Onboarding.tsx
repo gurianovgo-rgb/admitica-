@@ -47,13 +47,18 @@ import { cn } from "@/lib/utils"
 const EASE = [0.16, 1, 0.3, 1] as const
 const LETTERS = "Admitica".split("")
 
+/* In-screen entrance is intentionally a no-op: the screen-level AnimatePresence
+   transition already animates each screen in as a whole. A second per-card
+   stagger/fade on top of it read as a "double flip" and fought OptionCard's CSS
+   opacity transition (a dark flicker sweeping across the cards). Kept as identity
+   variants so the existing variants=/initial=/animate= props stay valid. */
 const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } },
+  hidden: { opacity: 1, y: 0 },
+  show: { opacity: 1, y: 0 },
 }
 const stagger = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.045 } },
+  show: {},
 }
 
 /* ---------- legacy profile shape (exact field names!) ---------- */
@@ -416,11 +421,11 @@ function OptionCard({
   return (
     <motion.button
       type="button"
-      variants={fadeUp}
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
       className={cn(
-        "relative flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left transition-[border-color,background-color,opacity] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+        // transition border/background only — never opacity (it fought the screen-level fade)
+        "relative flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left transition-[border-color,background-color] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
         selected ? "border-accent bg-accent-soft" : "border-border hover:border-accent/40",
         dimmed && "opacity-40",
         className,

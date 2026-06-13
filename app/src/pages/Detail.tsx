@@ -1,4 +1,4 @@
-import { Fragment } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import {
   ArrowLeft,
@@ -17,7 +17,7 @@ import { Accordion, AccordionItem } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { UNI_CONTENT, type UniSection } from "@/data/uniContent"
+import { UNI_CONTENT, type RichBlock, type UniSection } from "@/data/uniContent"
 import { deadlineLabel } from "@/lib/roadmap"
 import type { AnyProgram, Grant, University } from "@/legacy"
 import { cn } from "@/lib/utils"
@@ -76,6 +76,115 @@ function DeadlineBadge({ days }: { days: number }) {
 function SectionHeading({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <h2 className={cn("text-xs font-semibold tracking-widest text-fg-muted uppercase", className)}>{children}</h2>
+  )
+}
+
+/* ---------- full report block body (RichBlock nodes) ---------- */
+const isUrl = (s: string) => /^https?:\/\//i.test(s.trim())
+
+function Cell({ value }: { value: string }) {
+  if (isUrl(value)) {
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 break-all text-accent-text hover:underline"
+      >
+        {value.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+        <ArrowUpRight className="size-3 shrink-0" />
+      </a>
+    )
+  }
+  return <>{value}</>
+}
+
+function RichBlockBody({ block }: { block: RichBlock }) {
+  return (
+    <div className="flex flex-col gap-3.5">
+      {block.nodes.map((n, i) => {
+        if (n.type === "sub")
+          return (
+            <h3 key={i} className="mt-1.5 text-sm font-semibold text-fg first:mt-0">
+              {n.text}
+            </h3>
+          )
+        if (n.type === "p" && n.ru)
+          return (
+            <div key={i} className="flex gap-2.5 rounded-xl border border-accent/30 bg-accent-soft p-3.5">
+              <span className="shrink-0 text-base leading-none">🇷🇺</span>
+              <p className="text-[13px] leading-relaxed text-fg-muted">
+                <strong className="font-semibold text-accent-text">Для России: </strong>
+                {n.text}
+              </p>
+            </div>
+          )
+        if (n.type === "p")
+          return (
+            <p key={i} className="text-sm leading-relaxed text-fg-muted">
+              {n.text}
+            </p>
+          )
+        if (n.type === "ul")
+          return (
+            <ul key={i} className="flex flex-col gap-2 text-sm leading-relaxed">
+              {n.items.map((it, j) => (
+                <li key={j} className="flex items-start gap-2.5">
+                  <Check className="mt-0.5 size-4 shrink-0 text-accent-text" />
+                  <span className="min-w-0 text-fg-muted">
+                    <Cell value={it} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )
+        // table — horizontal scroll on narrow screens
+        return (
+          <div key={i} className="-mx-1 overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="border-b border-border-strong text-left">
+                  {n.headers.map((h, j) => (
+                    <th key={j} className="px-2.5 py-2 font-semibold whitespace-nowrap text-fg">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {n.rows.map((row, r) => (
+                  <tr key={r} className="border-b border-border last:border-0">
+                    {row.map((c, j) => (
+                      <td key={j} className="px-2.5 py-2 align-top leading-relaxed text-fg-muted">
+                        <Cell value={c} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      })}
+
+      {block.sources.length > 0 && (
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border pt-3 text-xs text-fg-faint">
+          <span>{block.sources.length > 1 ? "Источники:" : "Источник:"}</span>
+          {block.sources.map((url, i) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-medium text-accent-text hover:underline"
+            >
+              {block.sources.length > 1 ? `Источник ${i + 1}` : "Открыть"}
+              <ArrowUpRight className="size-3" />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -180,6 +289,19 @@ export default function Detail({
   const it = item
   const uniGrants = "program" in it ? grantsForUni(it) : []
   const content = UNI_CONTENT[it.id]
+
+  // Full report blocks are code-split — load on demand for this uni.
+  const [blocks, setBlocks] = useState<RichBlock[] | null>(null)
+  useEffect(() => {
+    let alive = true
+    setBlocks(null)
+    content?.loadBlocks?.().then((b) => {
+      if (alive) setBlocks(b)
+    })
+    return () => {
+      alive = false
+    }
+  }, [content])
 
   const reqs: { k: string; v: string }[] =
     "program" in it
@@ -321,8 +443,30 @@ export default function Detail({
             </Card>
           </motion.div>
 
-          {/* extended profile (uniContent) */}
-          {content && (
+          {/* full report blocks (code-split, lazy) */}
+          {content?.loadBlocks && (
+            <motion.div variants={fadeUp}>
+              <SectionHeading className="mb-3 px-1">Полный профиль вуза</SectionHeading>
+              {blocks ? (
+                <Accordion>
+                  {blocks.map((b, i) => (
+                    <AccordionItem key={b.title} title={b.title} defaultOpen={i === 0}>
+                      <RichBlockBody block={b} />
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {[0, 1, 2].map((i) => (
+                    <Card key={i} className="h-14 animate-pulse gap-0 p-0" />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* lighter editorial sections (fallback) */}
+          {content?.sections && content.sections.length > 0 && (
             <motion.div variants={fadeUp}>
               <SectionHeading className="mb-3 px-1">Профиль вуза</SectionHeading>
               <Accordion>
@@ -342,8 +486,8 @@ export default function Detail({
             </Card>
           </motion.div>
 
-          {/* FAQ */}
-          {content && content.faq.length > 0 && (
+          {/* FAQ (sections-based unis only; report blocks include their own FAQ) */}
+          {content?.faq && content.faq.length > 0 && (
             <motion.div variants={fadeUp}>
               <SectionHeading className="mb-3 px-1">Частые вопросы</SectionHeading>
               <Accordion>

@@ -119,44 +119,81 @@ function GoalCard({ roadmaps, onOpen }: { roadmaps: RoadmapEntry[]; onOpen: () =
   )
 }
 
+const pluralDay = (n: number) => {
+  const a = n % 100,
+    b = n % 10
+  if (a > 10 && a < 20) return "дней"
+  if (b === 1) return "день"
+  if (b >= 2 && b <= 4) return "дня"
+  return "дней"
+}
+
 function StreakCard() {
   const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
   const jsDay = new Date().getDay()
   const today = jsDay === 0 ? 6 : jsDay - 1
+  const streak = 4
+  const weekDone = today + 1
   return (
-    <Card className="p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-sm font-semibold">Ежедневный стрик</h2>
-          <div className="mt-1 text-xs text-fg-muted">4 дня подряд — продолжайте</div>
-        </div>
-        <div className="flex items-center gap-1.5 text-2xl font-bold text-warning">
-          <Flame className="size-5" />4
-        </div>
-      </div>
-      <div className="mt-5 flex justify-between gap-1.5">
-        {days.map((d, i) => {
-          const done = i <= today
-          return (
-            <div key={d} className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.25, ease: EASE, delay: 0.25 + i * 0.05 }}
-                className={cn(
-                  "grid aspect-square w-full max-w-8 place-items-center rounded-full border text-[10px] font-medium",
-                  done
-                    ? "border-transparent bg-accent text-accent-fg"
-                    : "border-border bg-card-2 text-fg-faint",
-                  i === today && "ring-2 ring-accent/40",
-                )}
-              >
-                {done ? <Check className="size-3.5" /> : i + 1}
-              </motion.div>
-              <span className="text-[10px] text-fg-faint">{d}</span>
+    <Card className="relative overflow-hidden p-6">
+      {/* warm ambient glow in the corner */}
+      <div aria-hidden className="pointer-events-none absolute -top-12 -right-10 size-40 rounded-full bg-warning/15 blur-3xl" />
+
+      <div className="relative flex h-full flex-col">
+        <h2 className="text-sm font-semibold">Ежедневный стрик</h2>
+
+        {/* hero: flame tile + count */}
+        <div className="mt-4 flex items-center gap-3.5">
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="grid size-13 shrink-0 place-items-center rounded-2xl bg-warning/12 text-warning shadow-[0_8px_24px_-12px_var(--color-warning)]"
+          >
+            <Flame className="size-6.5 fill-warning/20" />
+          </motion.div>
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-4xl font-bold tracking-tight text-warning">{streak}</span>
+              <span className="text-sm text-fg-muted">{pluralDay(streak)} подряд</span>
             </div>
-          )
-        })}
+            <div className="mt-0.5 text-xs text-fg-faint">Так держать — заходи каждый день</div>
+          </div>
+        </div>
+
+        {/* week strip with a connecting track */}
+        <div className="mt-auto pt-6">
+          <div className="mb-2.5 flex items-center justify-between text-[11px]">
+            <span className="font-semibold tracking-widest text-fg-faint uppercase">Эта неделя</span>
+            <span className="font-medium text-fg-muted">{weekDone}/7</span>
+          </div>
+          <div className="relative flex justify-between gap-1.5">
+            {/* track behind the dots */}
+            <div aria-hidden className="absolute inset-x-4 top-4 h-0.5 -translate-y-1/2 rounded-full bg-fg/8" />
+            {days.map((d, i) => {
+              const done = i <= today
+              return (
+                <div key={d} className="relative flex min-w-0 flex-1 flex-col items-center gap-1.5">
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.25, ease: EASE, delay: 0.2 + i * 0.05 }}
+                    className={cn(
+                      "grid aspect-square w-full max-w-8 place-items-center rounded-full border text-[10px] font-medium",
+                      done
+                        ? "border-transparent bg-accent text-accent-fg"
+                        : "border-border bg-card text-fg-faint",
+                      i === today && "ring-2 ring-accent/40 ring-offset-2 ring-offset-card",
+                    )}
+                  >
+                    {done ? <Check className="size-3.5" strokeWidth={3} /> : i + 1}
+                  </motion.div>
+                  <span className={cn("text-[10px]", i === today ? "font-semibold text-fg-muted" : "text-fg-faint")}>{d}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </Card>
   )

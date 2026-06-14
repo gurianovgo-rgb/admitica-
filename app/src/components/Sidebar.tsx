@@ -5,14 +5,12 @@ import {
   Briefcase,
   ChevronDown,
   Home,
-  Moon,
   PenLine,
   Search,
   Settings,
-  Sun,
 } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { CinematicThemeSwitcher } from "@/components/ui/cinematic-theme-switcher"
 import type { Tab } from "@/lib/nav"
 import { cn } from "@/lib/utils"
 
@@ -98,17 +96,9 @@ export interface SidebarProps {
 }
 
 function ThemeToggle({ theme, onToggle, className }: { theme: "dark" | "light"; onToggle: () => void; className?: string }) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      className={className}
-      onClick={onToggle}
-      aria-label={theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
-    >
-      {theme === "dark" ? <Sun /> : <Moon />}
-    </Button>
-  )
+  // The cinematic control is natively 104x64; scale it down to fit the sidebar
+  // header and the h-14 mobile top bar.
+  return <CinematicThemeSwitcher theme={theme} onToggle={onToggle} className={className} scale={0.6} />
 }
 
 function NavContent({ tab, setTab, name, plan, theme, onToggleTheme, onSettings }: SidebarProps) {
